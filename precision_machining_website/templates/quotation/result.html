@@ -23,7 +23,7 @@
                 </div>
                 
                 <div class="pricing-result text-center py-4">
-                    <h3 class="display-4 text-primary">¥{{ price_min }} - ¥{{ price_max }}</h3>
+                    <h3 class="display-4 text-primary">¥{{ price_min|floatformat:2 }} - ¥{{ price_max|floatformat:2 }}</h3>
                     <p class="lead">参考价格区间</p>
                 </div>
                 
@@ -34,15 +34,15 @@
                         <table class="table table-bordered">
                             <tr>
                                 <td><strong>基础价格</strong></td>
-                                <td>¥{{ factor_details.base_price }}</td>
+                                <td>¥{{ factor_details.base_price|floatformat:2 }}</td>
                             </tr>
                             <tr>
                                 <td><strong>材料系数</strong></td>
-                                <td>{{ factor_details.material_multiplier }}</td>
+                                <td>{{ factor_details.material_multiplier|floatformat:2 }}</td>
                             </tr>
                             <tr>
                                 <td><strong>数量因子</strong></td>
-                                <td>{{ factor_details.quantity_factor }}</td>
+                                <td>{{ factor_details.quantity_factor|floatformat:2 }}</td>
                             </tr>
                             <tr>
                                 <td><strong>数量</strong></td>
@@ -56,15 +56,15 @@
                                 <tr>
                                     <th>因子名称</th>
                                     <th>值</th>
-                                    <th>计算方式</th>
+                                    <th>说明</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for factor in factor_details.factors %}
                                 <tr>
                                     <td>{{ factor.name }}</td>
-                                    <td>{{ factor.value }}</td>
-                                    <td>{{ factor.calculation }}</td>
+                                    <td>{{ factor.value|floatformat:2 }}</td>
+                                    <td>{{ factor.description }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -225,7 +225,7 @@
 
 <div class="row mt-4">
     <div class="col-12">
-        <a href="{% url 'quotation:request' %}" class="btn btn-primary">重新报价</a>
+        <a href="{% url 'quotation:quotation_request' %}" class="btn btn-primary">重新报价</a>
         <a href="{% url 'gallery:work_list' %}" class="btn btn-secondary">查看作品案例</a>
     </div>
 </div>

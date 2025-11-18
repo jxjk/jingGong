@@ -5,8 +5,7 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2>报价详情</h2>
-        <hr>
+        <h1 class="mb-4">报价详情 #{{ quote.id }}</h1>
     </div>
 </div>
 
@@ -17,17 +16,34 @@
                 <h5>客户信息</h5>
             </div>
             <div class="card-body">
-                <p><strong>姓名：</strong>{{ quote.name }}</p>
-                <p><strong>邮箱：</strong>{{ quote.email }}</p>
-                <p><strong>电话：</strong>{{ quote.phone }}</p>
-                <p><strong>创建时间：</strong>{{ quote.created_at|date:"Y-m-d H:i:s" }}</p>
-                <p><strong>处理状态：</strong>
-                    {% if quote.is_processed %}
-                        <span class="badge bg-success">已处理</span>
-                    {% else %}
-                        <span class="badge bg-warning">待处理</span>
-                    {% endif %}
-                </p>
+                <table class="table table-bordered">
+                    <tr>
+                        <td><strong>姓名</strong></td>
+                        <td>{{ quote.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>邮箱</strong></td>
+                        <td>{{ quote.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>电话</strong></td>
+                        <td>{{ quote.phone }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>提交时间</strong></td>
+                        <td>{{ quote.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>处理状态</strong></td>
+                        <td>
+                            {% if quote.is_processed %}
+                                <span class="badge bg-success">已处理</span>
+                            {% else %}
+                                <span class="badge bg-warning">待处理</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -38,14 +54,28 @@
                 <h5>项目信息</h5>
             </div>
             <div class="card-body">
-                <p><strong>加工类型：</strong>{{ quote.get_processing_type_display }}</p>
-                <p><strong>材料：</strong>{{ quote.get_material_display }}</p>
-                <p><strong>数量：</strong>{{ quote.quantity }}</p>
-                <p><strong>精度要求：</strong>{{ quote.accuracy }}</p>
-                <p><strong>表面处理：</strong>{{ quote.get_surface_treatment_display }}</p>
-                {% if quote.model_file %}
-                <p><strong>3D模型文件：</strong><a href="{{ quote.model_file.url }}" target="_blank">下载文件</a></p>
-                {% endif %}
+                <table class="table table-bordered">
+                    <tr>
+                        <td><strong>加工类型</strong></td>
+                        <td>{{ quote.get_processing_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>材料</strong></td>
+                        <td>{{ quote.get_material_display }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>数量</strong></td>
+                        <td>{{ quote.quantity }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>精度要求</strong></td>
+                        <td>{{ quote.accuracy }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>表面处理</strong></td>
+                        <td>{{ quote.get_surface_treatment_display }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -55,46 +85,87 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5>附加说明</h5>
+                <h5>附加信息</h5>
             </div>
             <div class="card-body">
-                {% if quote.description %}
-                    <p>{{ quote.description|linebreaks }}</p>
-                {% else %}
-                    <p class="text-muted">无附加说明</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>3D模型分析结果</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>体积：</strong>{{ quote.volume|default:"未计算" }} cm³</p>
-                        <p><strong>表面积：</strong>{{ quote.surface_area|default:"未计算" }} cm²</p>
-                        <p><strong>包围盒尺寸：</strong>
-                            {% if quote.bounding_box_length and quote.bounding_box_width and quote.bounding_box_height %}
-                                {{ quote.bounding_box_length }} × {{ quote.bounding_box_width }} × {{ quote.bounding_box_height }} mm
-                            {% else %}
-                                未计算
-                            {% endif %}
-                        </p>
-                        <p><strong>最小拐角半径：</strong>{{ quote.min_radius|default:"未计算" }} mm</p>
-                        <p><strong>最大径长比：</strong>{{ quote.max_aspect_ratio|default:"未计算" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>复杂度评分：</strong>{{ quote.complexity_score|default:"未计算" }}</p>
-                        <p><strong>最小刀具直径：</strong>{{ quote.min_tool_diameter|default:"未计算" }} mm</p>
-                        <p><strong>加工难度评分：</strong>{{ quote.machining_difficulty|default:"未计算" }}</p>
-                    </div>
+                <div class="mb-3">
+                    <h6>附加说明</h6>
+                    {% if quote.description %}
+                        <p>{{ quote.description|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted">无附加说明</p>
+                    {% endif %}
                 </div>
+                
+                {% if quote.model_file %}
+                <div class="mb-3">
+                    <h6>3D模型文件</h6>
+                    <p><a href="{{ quote.model_file.url }}" target="_blank">{{ quote.model_file.name }}</a></p>
+                </div>
+                {% endif %}
+                
+                {% if quote.volume or quote.surface_area %}
+                <div class="mb-3">
+                    <h6>模型分析结果</h6>
+                    <table class="table table-bordered">
+                        {% if quote.volume %}
+                        <tr>
+                            <td><strong>体积</strong></td>
+                            <td>{{ quote.volume|floatformat:2 }} cm³</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.surface_area %}
+                        <tr>
+                            <td><strong>表面积</strong></td>
+                            <td>{{ quote.surface_area|floatformat:2 }} cm²</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.bounding_box_length %}
+                        <tr>
+                            <td><strong>尺寸</strong></td>
+                            <td>{{ quote.bounding_box_length|floatformat:2 }} × {{ quote.bounding_box_width|floatformat:2 }} × {{ quote.bounding_box_height|floatformat:2 }} mm</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.complexity_score %}
+                        <tr>
+                            <td><strong>复杂度评分</strong></td>
+                            <td>{{ quote.complexity_score|floatformat:1 }}/5</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.max_aspect_ratio %}
+                        <tr>
+                            <td><strong>最大径长比</strong></td>
+                            <td>{{ quote.max_aspect_ratio|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.min_radius %}
+                        <tr>
+                            <td><strong>最小拐角半径</strong></td>
+                            <td>{{ quote.min_radius|floatformat:2 }} mm</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.min_tool_diameter %}
+                        <tr>
+                            <td><strong>最小刀具直径</strong></td>
+                            <td>{{ quote.min_tool_diameter|floatformat:2 }} mm</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if quote.machining_difficulty %}
+                        <tr>
+                            <td><strong>加工难度评分</strong></td>
+                            <td>{{ quote.machining_difficulty|floatformat:1 }}/5</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

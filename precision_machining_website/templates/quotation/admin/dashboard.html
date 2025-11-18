@@ -1,60 +1,72 @@
 {% extends 'base.html' %}
 
-{% block title %}管理员仪表板 - 精工智造{% endblock %}
+{% block title %}管理面板 - 精工智造{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2>管理员仪表板</h2>
-        <hr>
+        <h1 class="mb-4">管理面板</h1>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white">
+    <!-- 统计卡片 -->
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
             <div class="card-body">
                 <h5 class="card-title">总报价数</h5>
-                <h2>{{ total_quotes }}</h2>
+                <p class="card-text display-4">{{ total_quotes }}</p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white">
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
             <div class="card-body">
-                <h5 class="card-title">已处理</h5>
-                <h2>{{ processed_quotes }}</h2>
+                <h5 class="card-title">总用户数</h5>
+                <p class="card-text display-4">{{ total_users }}</p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-white">
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">今日报价</h5>
+                <p class="card-text display-4">{{ today_quotes }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
             <div class="card-body">
                 <h5 class="card-title">待处理</h5>
-                <h2>{{ pending_quotes }}</h2>
+                <p class="card-text display-4">{{ pending_quotes }}</p>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row mt-4">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5>最近7天报价统计</h5>
+                <h5>最近报价趋势</h5>
             </div>
             <div class="card-body">
-                <canvas id="recentQuotesChart"></canvas>
+                <canvas id="recentQuotesChart" height="100"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    
+    <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5>按加工类型统计</h5>
+                <h5>报价类型分布</h5>
             </div>
             <div class="card-body">
-                <canvas id="typeChart"></canvas>
+                <canvas id="typeChart" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -63,10 +75,45 @@
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>快速操作</h5>
+            <div class="card-header">
+                <h5>最近报价</h5>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>客户姓名</th>
+                                <th>加工类型</th>
+                                <th>材料</th>
+                                <th>数量</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quote in recent_quotes_list %}
+                            <tr>
+                                <td>{{ quote.id }}</td>
+                                <td>{{ quote.name }}</td>
+                                <td>{{ quote.get_processing_type_display }}</td>
+                                <td>{{ quote.get_material_display }}</td>
+                                <td>{{ quote.quantity }}</td>
+                                <td>{{ quote.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'quotation:admin_quote_detail' quote.id %}" class="btn btn-sm btn-primary">详情</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">暂无报价数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
                 <a href="{% url 'quotation:admin_quote_list' %}" class="btn btn-primary">查看所有报价</a>
                 <a href="{% url 'quotation:admin_export_csv' %}" class="btn btn-success">导出CSV数据</a>
                 <a href="{% url 'admin:index' %}" class="btn btn-secondary">Django管理后台</a>
@@ -79,22 +126,23 @@
 <script>
     // 最近报价图表
     const recentCtx = document.getElementById('recentQuotesChart').getContext('2d');
-    const recentData = [
-        {% for item in recent_quotes %}
-            { date: '{{ item.date }}', count: {{ item.count }} },
-        {% endfor %}
-    ];
     
-    const recentLabels = recentData.map(item => item.date);
-    const recentValues = recentData.map(item => item.count);
+    // 构建最近报价数据
+    const recentDates = [];
+    const recentCounts = [];
+    
+    {% for item in recent_quotes %}
+        recentDates.push("{{ item.date|escapejs }}");
+        recentCounts.push({{ item.count }});
+    {% endfor %}
     
     new Chart(recentCtx, {
         type: 'line',
         data: {
-            labels: recentLabels,
+            labels: recentDates,
             datasets: [{
                 label: '报价数量',
-                data: recentValues,
+                data: recentCounts,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }]
@@ -111,38 +159,50 @@
     
     // 类型统计图表
     const typeCtx = document.getElementById('typeChart').getContext('2d');
-    const typeData = [
-        {% for item in quotes_by_type %}
-            { type: '{{ item.processing_type }}', count: {{ item.count }} },
-        {% endfor %}
+    
+    // 构建类型统计数据
+    const typeLabels = [];
+    const typeCounts = [];
+    const typeColors = [
+        'rgb(255, 99, 132)',
+        'rgb(54, 162, 235)',
+        'rgb(255, 205, 86)'
     ];
     
-    const typeLabels = typeData.map(item => {
-        // 显示中文名称
-        switch(item.type) {
-            case 'cnc_milling': return 'CNC铣削';
-            case 'cnc_turning': return 'CNC车削';
-            case '3d_printing': return '3D打印';
-            default: return item.type;
+    {% for item in quotes_by_type %}
+        // 添加类型标签（中文名称）
+        switch("{{ item.processing_type|escapejs }}") {
+            case 'cnc_milling':
+                typeLabels.push('CNC铣削');
+                break;
+            case 'cnc_turning':
+                typeLabels.push('CNC车削');
+                break;
+            case '3d_printing':
+                typeLabels.push('3D打印');
+                break;
+            default:
+                typeLabels.push("{{ item.processing_type|escapejs }}");
         }
-    });
-    const typeValues = typeData.map(item => item.count);
+        typeCounts.push({{ item.count }});
+    {% endfor %}
     
     new Chart(typeCtx, {
         type: 'pie',
         data: {
             labels: typeLabels,
             datasets: [{
-                data: typeValues,
-                backgroundColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 205, 86)'
-                ]
+                data: typeCounts,
+                backgroundColor: typeColors
             }]
         },
         options: {
-            responsive: true
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
         }
     });
 </script>

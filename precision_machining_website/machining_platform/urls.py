@@ -17,8 +17,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from gallery import views as gallery_views
 
 urlpatterns = [
+    path('', gallery_views.work_list, name='home'),
     path('admin/', admin.site.urls),
     path('gallery/', include('gallery.urls', namespace='gallery')),
     path('quotation/', include('quotation.urls', namespace='quotation')),
