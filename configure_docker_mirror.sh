@@ -13,14 +13,13 @@ fi
 # 创建Docker配置目录
 mkdir -p /etc/docker
 
-# 创建daemon.json配置文件
+# 创建daemon.json配置文件（使用阿里云镜像加速器）
 cat > /etc/docker/daemon.json <<EOF
 {
   "registry-mirrors": [
-    "https://hub-mirror.c.163.com",
-    "https://mirror.baidubce.com",
-    "https://dockerproxy.com",
-    "https://reg-mirror.qiniu.com"
+    "https://registry.cn-hangzhou.aliyuncs.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com"
   ]
 }
 EOF

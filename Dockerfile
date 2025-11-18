@@ -1,13 +1,13 @@
-FROM registry.docker-cn.com/library/ubuntu:20.04
+FROM ubuntu:20.04
 
 # 避免交互式安装
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 设置apt使用国内镜像源
+# 设置apt使用阿里云镜像源
 RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
 
-# 设置pip使用国内镜像源
+# 设置pip使用阿里云镜像源
 ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 ENV PIP_TRUSTED_HOST=mirrors.aliyun.com
 
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY requirements.txt .
 COPY precision_machining_website/entrypoint.sh .
 
-# 安装Python依赖（使用国内镜像源加速）
+# 安装Python依赖（使用阿里云镜像源加速）
 RUN pip3 install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && \
     pip3 install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 

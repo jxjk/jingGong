@@ -16,6 +16,12 @@ echo -e "\n3. 检查Docker镜像加速配置:"
 if [ -f /etc/docker/daemon.json ]; then
     echo "Docker daemon配置文件存在:"
     cat /etc/docker/daemon.json
+    echo -e "\n检查是否配置了阿里云镜像加速器:"
+    if grep -q "registry.cn-hangzhou.aliyuncs.com" /etc/docker/daemon.json; then
+        echo "  ✓ 已配置阿里云镜像加速器"
+    else
+        echo "  ✗ 未配置阿里云镜像加速器"
+    fi
 else
     echo "Docker daemon配置文件不存在"
 fi
@@ -53,8 +59,8 @@ echo -e "\n11. 检查内存使用情况:"
 free -h
 
 # 检查网络连接
-echo -e "\n12. 检查网络连接:"
-ping -c 3 registry-1.docker.io
+echo -e "\n12. 检查网络连接到阿里云镜像服务:"
+timeout 10 curl -s -o /dev/null -w "HTTP状态码: %{http_code}\n" https://registry.cn-hangzhou.aliyuncs.com
 
 echo -e "\n================== 检查完成 =================="
 echo "如果需要实时监控日志，请使用以下命令："
