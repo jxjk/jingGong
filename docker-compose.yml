@@ -1,19 +1,20 @@
-web:
-  build: .
-  ports:
-    - "8000:8000"
-  volumes:
-    - ./precision_machining_website:/app
-  environment:
-    - DEBUG=0
-  links:
-    - db
+version: '2'
 
-db:
-  image: postgres:13
-  environment:
-    - POSTGRES_DB=machining_platform
-    - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=postgres
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./precision_machining_website:/app
+    environment:
+      - DEBUG=0
+    links:
+      - db
 
-# 移除nginx服务，因为版本1不支持一些高级特性
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=machining_platform
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
