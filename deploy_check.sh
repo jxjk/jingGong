@@ -38,28 +38,36 @@ docker ps -a
 echo -e "\n6. 检查构建的镜像:"
 docker images | grep jinggong
 
+# 检查ubuntu基础镜像是否存在
+echo -e "\n7. 检查ubuntu基础镜像:"
+if docker images | grep -q "ubuntu.*20.04"; then
+    echo "  ✓ ubuntu:20.04镜像已存在"
+else
+    echo "  ✗ ubuntu:20.04镜像不存在，需要拉取"
+fi
+
 # 检查服务状态
-echo -e "\n7. 检查服务状态:"
+echo -e "\n8. 检查服务状态:"
 docker-compose ps
 
 # 检查web服务日志（最近20行）
-echo -e "\n8. 检查web服务日志（最近20行）:"
+echo -e "\n9. 检查web服务日志（最近20行）:"
 docker-compose logs --tail=20 web
 
 # 检查数据库服务日志（最近20行）
-echo -e "\n9. 检查数据库服务日志（最近20行）:"
+echo -e "\n10. 检查数据库服务日志（最近20行）:"
 docker-compose logs --tail=20 db
 
 # 检查磁盘使用情况
-echo -e "\n10. 检查磁盘使用情况:"
+echo -e "\n11. 检查磁盘使用情况:"
 df -h
 
 # 检查内存使用情况
-echo -e "\n11. 检查内存使用情况:"
+echo -e "\n12. 检查内存使用情况:"
 free -h
 
 # 检查网络连接
-echo -e "\n12. 检查网络连接到阿里云镜像服务:"
+echo -e "\n13. 检查网络连接到阿里云镜像服务:"
 timeout 10 curl -s -o /dev/null -w "HTTP状态码: %{http_code}\n" https://registry.cn-hangzhou.aliyuncs.com
 
 echo -e "\n================== 检查完成 =================="
@@ -70,3 +78,7 @@ echo ""
 echo "如果遇到镜像拉取问题，请运行以下命令配置镜像加速器："
 echo "  sudo chmod +x configure_docker_mirror.sh"
 echo "  sudo ./configure_docker_mirror.sh"
+echo ""
+echo "如果自动拉取镜像失败，可以手动拉取："
+echo "  docker pull registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04"
+echo "  docker tag registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04 ubuntu:20.04"
