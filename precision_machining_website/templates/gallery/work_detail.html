@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ work.title }} - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'gallery:work_list' %}">作品展示</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gallery:work_list_by_category' work.category.slug %}">{{ work.category.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ work.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h1>{{ work.title }}</h1>
+        <p class="text-muted">
+            <small>
+                发布于 {{ work.created_at|date:"Y-m-d H:i" }} |
+                分类: {{ work.category.name }}
+            </small>
+        </p>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        {% if work.image %}
+        <img src="{{ work.image.url }}" class="img-fluid rounded" alt="{{ work.title }}">
+        {% endif %}
+        
+        {% if work.video_url %}
+        <div class="mt-3">
+            <h4>演示视频</h4>
+            <div class="ratio ratio-16x9">
+                <iframe src="{{ work.video_url }}" title="{{ work.title }}" allowfullscreen></iframe>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>作品信息</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>项目周期:</strong> {{ work.project_duration }}</p>
+                <p><strong>使用材料:</strong> {{ work.materials }}</p>
+                <p><strong>使用设备:</strong> {{ work.equipment_used }}</p>
+                <p><strong>工艺技术:</strong> {{ work.process_techniques }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>项目背景</h3>
+        <p>{{ work.project_background|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>加工难点与解决方案</h3>
+        <p>{{ work.process_difficulties|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h3>作品描述</h3>
+        <p>{{ work.description|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'gallery:work_list' %}" class="btn btn-secondary">返回作品列表</a>
+    </div>
+</div>
+{% endblock %}

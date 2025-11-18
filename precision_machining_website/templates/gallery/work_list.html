@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}作品展示 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">作品展示</h1>
+    </div>
+</div>
+
+<!-- 分类导航 -->
+<div class="row category-nav">
+    <div class="col-12">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link {% if not current_category %}active{% endif %}" href="{% url 'gallery:work_list' %}">全部作品</a>
+            </li>
+            {% for category in categories %}
+            <!-- 只显示具有有效slug的分类 -->
+            {% if category.slug %}
+            <li class="nav-item">
+                <a class="nav-link {% if current_category and current_category.id == category.id %}active{% endif %}" 
+                   href="{% url 'gallery:work_list_by_category' category.slug %}">
+                    {{ category.name }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- 作品列表 -->
+<div class="row">
+    {% for work in page_obj %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card h-100">
+            {% if work.image %}
+            <img src="{{ work.image.url }}" class="card-img-top work-image" alt="{{ work.title }}">
+            {% else %}
+            <div class="card-img-top work-image bg-secondary d-flex align-items-center justify-content-center text-white">
+                暂无图片
+            </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ work.title }}</h5>
+                <p class="card-text flex-grow-1">{{ work.description|truncatewords:20 }}</p>
+                <a href="{% url 'gallery:work_detail' work.id %}" class="btn btn-primary mt-auto">查看详情</a>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">{{ work.created_at|date:"Y-m-d" }} | {{ work.category.name }}</small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            暂无作品展示。
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if page_obj.has_other_pages %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="作品分页">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一页</a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
