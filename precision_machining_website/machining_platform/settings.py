@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@0^+z!$b%3@o%329i%7v!u!q!w#h#8n0j#xk#f&0s3^p!c1m3n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -148,3 +148,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Docker环境下的一些额外配置
+if os.environ.get('DOCKER_ENV'):
+    # 在Docker环境中，确保文件权限正确
+    FILE_UPLOAD_PERMISSIONS = 0o644

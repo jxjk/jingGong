@@ -34,8 +34,10 @@ RUN pip3 install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && \
 # 复制项目文件
 COPY precision_machining_website/ .
 
-# 创建静态文件目录
+# 创建静态文件和媒体文件目录
 RUN mkdir -p static
+RUN mkdir -p media
+RUN mkdir -p staticfiles
 
 # 给予入口文件执行权限
 RUN chmod +x entrypoint.sh
