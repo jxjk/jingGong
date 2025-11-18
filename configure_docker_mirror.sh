@@ -13,15 +13,19 @@ fi
 # 创建Docker配置目录
 mkdir -p /etc/docker
 
-# 创建daemon.json配置文件（使用多个国内镜像加速器）
+# 获取阿里云镜像加速器地址
+echo "请输入您的阿里云镜像加速器地址（格式如：https://<ID>.mirror.aliyuncs.com）："
+read -r MIRROR_URL
+
+if [ -z "$MIRROR_URL" ]; then
+    echo "未输入镜像加速器地址，使用默认地址"
+    MIRROR_URL="https://registry.cn-hangzhou.aliyuncs.com"
+fi
+
+# 创建daemon.json配置文件
 cat > /etc/docker/daemon.json <<EOF
 {
-  "registry-mirrors": [
-    "https://registry.cn-hangzhou.aliyuncs.com",
-    "https://docker.mirrors.ustc.edu.cn",
-    "https://hub-mirror.c.163.com",
-    "https://mirror.baidubce.com"
-  ]
+  "registry-mirrors": ["$MIRROR_URL"]
 }
 EOF
 
@@ -37,11 +41,13 @@ if [ $? -eq 0 ]; then
     echo "您现在可以尝试重新构建镜像:"
     echo "  cd jingGong"
     echo "  docker-compose build"
+    echo ""
+    echo "或者直接启动服务:"
+    echo "  docker-compose up -d"
 else
     echo "Docker服务重启失败，请手动检查配置"
 fi
 
 echo ""
-echo "如果仍然无法拉取镜像，可以尝试手动拉取并重新标记:"
-echo "  docker pull registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04"
-echo "  docker tag registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04 ubuntu:20.04"
+echo "关键说明：阿里云镜像加速器已完整代理 Docker Hub 官方镜像（包括 library/ubuntu 和 library/postgres）"
+echo "配置后无需修改 docker-compose.yml，Docker会自动通过加速器拉取镜像"
