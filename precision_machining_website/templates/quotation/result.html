@@ -27,6 +27,52 @@
                     <p class="lead">参考价格区间</p>
                 </div>
                 
+                {% if factor_details %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>价格计算详情</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>基础价格</strong></td>
+                                <td>¥{{ factor_details.base_price }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>材料系数</strong></td>
+                                <td>{{ factor_details.material_multiplier }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>数量因子</strong></td>
+                                <td>{{ factor_details.quantity_factor }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>数量</strong></td>
+                                <td>{{ factor_details.quantity }}</td>
+                            </tr>
+                        </table>
+                        
+                        <h6>模型相关因子</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>因子名称</th>
+                                    <th>值</th>
+                                    <th>计算方式</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factor in factor_details.factors %}
+                                <tr>
+                                    <td>{{ factor.name }}</td>
+                                    <td>{{ factor.value }}</td>
+                                    <td>{{ factor.calculation }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                
                 <div class="row mt-4">
                     <div class="col-md-6">
                         <h5>项目信息</h5>

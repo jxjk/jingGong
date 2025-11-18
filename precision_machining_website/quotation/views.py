@@ -22,18 +22,32 @@ def quotation_request(request):
                 try:
                     # 获取文件的绝对路径
                     file_path = quotation.model_file.path
+                    print(f"开始分析3D模型文件: {file_path}")
+                    print(f"文件是否存在: {os.path.exists(file_path)}")
+                    print(f"文件大小: {os.path.getsize(file_path) if os.path.exists(file_path) else 'N/A'}")
                     
                     # 使用CAD分析器分析3D模型
                     analyzer = CADModelAnalyzer(file_path)
                     features = analyzer.analyze()
+                    print(f"分析完成，提取特征: {features}")
                     
                     # 更新报价请求对象
+                    updated_fields = []
                     for key, value in features.items():
-                        setattr(quotation, key, value)
+                        if hasattr(quotation, key):
+                            setattr(quotation, key, value)
+                            updated_fields.append(key)
+                            print(f"设置字段 {key} = {value}")
                     
-                    quotation.save()
+                    if updated_fields:
+                        quotation.save()
+                        print(f"成功更新字段: {updated_fields}")
+                    else:
+                        print("未找到可更新的字段")
                 except Exception as e:
                     print(f"分析3D模型时出错: {e}")
+                    import traceback
+                    traceback.print_exc()
             
             # 重定向到结果页面，传入报价ID
             return redirect('quotation:result', quotation_id=quotation.id)
@@ -70,40 +84,157 @@ def quotation_result(request, quotation_id):
         # 基于3D模型特征的价格调整因子
         model_factor = 1.0
         
+        # 记录各个因子的详细信息
+        factor_details = {
+            'base_price': base_price,
+            'material_multiplier': material_multiplier,
+            'quantity_factor': quantity_factor,
+            'quantity': quotation.quantity,
+            'factors': []
+        }
+        
         # 体积因子（cm³）
         if quotation.volume:
-            # 体积越大，材料成本越高
-            model_factor *= (1 + quotation.volume / 1000.0)
+            volume_factor = (1 + quotation.volume / 1000.0)
+            model_factor *= volume_factor
+            factor_details['factors'].append({
+                'name': '体积因子',
+                'value': quotation.volume,
+                'calculation': f"1 + {quotation.volume} / 1000.0 = {volume_factor:.4f}"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '体积因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
         
         # 表面积因子（cm²）
         if quotation.surface_area:
-            # 表面积越大，处理时间越长
-            model_factor *= (1 + quotation.surface_area / 1000.0)
+            surface_area_factor = (1 + quotation.surface_area / 1000.0)
+            model_factor *= surface_area_factor
+            factor_details['factors'].append({
+                'name': '表面积因子',
+                'value': quotation.surface_area,
+                'calculation': f"1 + {quotation.surface_area} / 1000.0 = {surface_area_factor:.4f}"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '表面积因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
         
         # 复杂度因子
         if quotation.complexity_score:
-            # 复杂度越高，加工难度越大
-            model_factor *= (1 + quotation.complexity_score / 10.0)
+            complexity_factor = (1 + quotation.complexity_score / 10.0)
+            model_factor *= complexity_factor
+            factor_details['factors'].append({
+                'name': '复杂度因子',
+                'value': quotation.complexity_score,
+                'calculation': f"1 + {quotation.complexity_score} / 10.0 = {complexity_factor:.4f}"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '复杂度因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
         
         # 径长比因子（极端比例会增加加工难度）
         if quotation.max_aspect_ratio and quotation.max_aspect_ratio > 5:
-            model_factor *= 1.2
+            aspect_ratio_factor = 1.2
+            model_factor *= aspect_ratio_factor
+            factor_details['factors'].append({
+                'name': '径长比因子',
+                'value': quotation.max_aspect_ratio,
+                'calculation': f"大于5，因子 = {aspect_ratio_factor}"
+            })
+        elif quotation.max_aspect_ratio:
+            factor_details['factors'].append({
+                'name': '径长比因子',
+                'value': quotation.max_aspect_ratio,
+                'calculation': f"小于等于5，因子 = 1.0"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '径长比因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
         
         # 精度要求因子
+        precision_factor = 1.0
         if '±0.01' in quotation.accuracy:
-            model_factor *= 1.5
+            precision_factor = 1.5
         elif '±0.05' in quotation.accuracy:
-            model_factor *= 1.2
+            precision_factor = 1.2
         elif '±0.1' in quotation.accuracy:
-            model_factor *= 1.1
+            precision_factor = 1.1
+            
+        if precision_factor > 1.0:
+            model_factor *= precision_factor
+            factor_details['factors'].append({
+                'name': '精度因子',
+                'value': quotation.accuracy,
+                'calculation': f"因子 = {precision_factor}"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '精度因子',
+                'value': quotation.accuracy,
+                'calculation': f"因子 = 1.0"
+            })
         
         # 最小拐角半径因子（半径越小，加工越困难）
         if quotation.min_radius and quotation.min_radius < 0.5:
-            model_factor *= 1.3
+            radius_factor = 1.3
+            model_factor *= radius_factor
+            factor_details['factors'].append({
+                'name': '最小拐角半径因子',
+                'value': quotation.min_radius,
+                'calculation': f"小于0.5，因子 = {radius_factor}"
+            })
+        elif quotation.min_radius:
+            factor_details['factors'].append({
+                'name': '最小拐角半径因子',
+                'value': quotation.min_radius,
+                'calculation': f"大于等于0.5，因子 = 1.0"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '最小拐角半径因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
             
         # 加工难度因子
         if quotation.machining_difficulty:
-            model_factor *= (1 + quotation.machining_difficulty / 10.0)
+            difficulty_factor = (1 + quotation.machining_difficulty / 10.0)
+            model_factor *= difficulty_factor
+            factor_details['factors'].append({
+                'name': '加工难度因子',
+                'value': quotation.machining_difficulty,
+                'calculation': f"1 + {quotation.machining_difficulty} / 10.0 = {difficulty_factor:.4f}"
+            })
+        else:
+            factor_details['factors'].append({
+                'name': '加工难度因子',
+                'value': 'N/A',
+                'calculation': '未提供'
+            })
+        
+        # 调试信息：打印计算参数
+        print(f"报价ID {quotation_id} 的计算参数:")
+        print(f"  基础价格: {base_price}")
+        print(f"  材料系数: {material_multiplier}")
+        print(f"  数量因子: {quantity_factor}")
+        print(f"  数量: {quotation.quantity}")
+        print(f"  模型因子: {model_factor}")
+        print(f"  是否有模型文件: {bool(quotation.model_file)}")
+        print(f"  体积: {quotation.volume}")
+        print(f"  表面积: {quotation.surface_area}")
+        print(f"  复杂度评分: {quotation.complexity_score}")
         
         estimated_price = base_price * material_multiplier * quantity_factor * quotation.quantity * model_factor
         
@@ -115,6 +246,7 @@ def quotation_result(request, quotation_id):
             'quotation': quotation,
             'price_min': price_min,
             'price_max': price_max,
+            'factor_details': factor_details  # 添加详细的因子信息到上下文中
         }
         return render(request, 'quotation/result.html', context)
     except QuotationRequest.DoesNotExist:

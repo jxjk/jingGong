@@ -60,16 +60,19 @@ class CADModelAnalyzer:
             if CADQUERY_AVAILABLE and self.file_extension in ['.step', '.stp']:
                 # 注意：CadQuery在某些环境下可能需要额外配置
                 self.model = cq.importers.importStep(self.file_path)
+                print(f"使用CadQuery成功加载模型: {self.file_path}")
                 return
             
             # 使用trimesh处理通用3D格式
             if TRIMESH_AVAILABLE:
                 self.model = trimesh.load(self.file_path)
+                print(f"使用Trimesh成功加载模型: {self.file_path}")
                 return
                 
             # 使用numpy-stl处理STL文件
             if STL_AVAILABLE and self.file_extension in ['.stl']:
                 self.model = mesh.Mesh.from_file(self.file_path)
+                print(f"使用numpy-stl成功加载模型: {self.file_path}")
                 return
                 
         except Exception as e:
@@ -83,21 +86,60 @@ class CADModelAnalyzer:
         """
         features = {}
         
+        # 打印调试信息
+        print(f"开始分析模型: {self.file_path}")
+        print(f"CADQUERY_AVAILABLE: {CADQUERY_AVAILABLE}")
+        print(f"TRIMESH_AVAILABLE: {TRIMESH_AVAILABLE}")
+        print(f"STL_AVAILABLE: {STL_AVAILABLE}")
+        print(f"Model type: {type(self.model)}")
+        print(f"File extension: {self.file_extension}")
+        
         # 尝试使用不同方法分析模型
-        if CADQUERY_AVAILABLE and hasattr(self.model, 'val') and self.file_extension in ['.step', '.stp']:
-            features.update(self._analyze_with_cadquery())
-        elif TRIMESH_AVAILABLE and hasattr(self.model, 'volume'):
-            features.update(self._analyze_with_trimesh())
-        elif STL_AVAILABLE and isinstance(self.model, mesh.Mesh):
-            features.update(self._analyze_with_stl())
-        else:
-            # 如果没有合适的分析器，返回空特征
-            print("警告: 没有合适的分析器处理此文件格式")
-            return {}
+        try:
+            if CADQUERY_AVAILABLE and hasattr(self.model, 'val') and self.file_extension in ['.step', '.stp']:
+                print("使用CadQuery分析模型")
+                features.update(self._analyze_with_cadquery())
+            elif TRIMESH_AVAILABLE and hasattr(self.model, 'volume'):
+                print("使用Trimesh分析模型")
+                features.update(self._analyze_with_trimesh())
+            elif STL_AVAILABLE and isinstance(self.model, mesh.Mesh):
+                print("使用numpy-stl分析模型")
+                features.update(self._analyze_with_stl())
+            else:
+                # 如果没有合适的分析器，尝试通用方法
+                print("警告: 没有合适的分析器处理此文件格式，尝试通用方法")
+                features.update(self._analyze_generic())
+        except Exception as e:
+            print(f"分析模型时出错: {e}")
+            # 即使分析失败，也尝试提取基本特征
+            features.update(self._analyze_generic())
         
         # 添加制造相关特征
-        features.update(self._calculate_manufacturing_features(features))
+        try:
+            features.update(self._calculate_manufacturing_features(features))
+        except Exception as e:
+            print(f"计算制造特征时出错: {e}")
         
+        print(f"分析完成，提取到的特征: {features}")
+        return features
+    
+    def _analyze_generic(self):
+        """
+        通用分析方法，尝试从任意模型中提取基本特征
+        """
+        features = {}
+        try:
+            # 如果模型存在，尝试获取基本信息
+            if self.model is not None:
+                # 尝试获取文件大小作为简单特征
+                try:
+                    file_size = os.path.getsize(self.file_path)
+                    # 简单地将文件大小转换为复杂度评分
+                    features['complexity_score'] = min(5.0, max(1.0, file_size / 100000.0))
+                except:
+                    pass
+        except Exception as e:
+            print(f"通用分析方法出错: {e}")
         return features
     
     def _analyze_with_cadquery(self):
@@ -108,29 +150,34 @@ class CADModelAnalyzer:
         
         try:
             # 获取模型实体
-            shape = self.model.val()
+            shape = self.model.vals()[0]  # 获取第一个实体
             
             # 计算体积 (转换为立方厘米)
-            features['volume'] = shape.Volume / 1000.0
+            volume = shape.Volume()
+            if volume is not None:
+                features['volume'] = volume / 1000.0
             
             # 计算表面积 (转换为平方厘米)
-            features['surface_area'] = shape.Area / 100.0
+            area = shape.Area()
+            if area is not None:
+                features['surface_area'] = area / 100.0
             
             # 获取包围盒
             bbox = shape.BoundingBox()
-            features['bounding_box_length'] = bbox.xlen
-            features['bounding_box_width'] = bbox.ylen
-            features['bounding_box_height'] = bbox.zlen
-            
-            # 计算径长比
-            dimensions = [bbox.xlen, bbox.ylen, bbox.zlen]
-            ratios = []
-            for i in range(len(dimensions)):
-                for j in range(i+1, len(dimensions)):
-                    if dimensions[j] > 0:
-                        ratios.append(dimensions[i] / dimensions[j])
-            
-            features['max_aspect_ratio'] = max(ratios) if ratios else None
+            if bbox is not None:
+                features['bounding_box_length'] = bbox.xlen
+                features['bounding_box_width'] = bbox.ylen
+                features['bounding_box_height'] = bbox.zlen
+                
+                # 计算径长比
+                dimensions = [bbox.xlen, bbox.ylen, bbox.zlen]
+                ratios = []
+                for i in range(len(dimensions)):
+                    for j in range(i+1, len(dimensions)):
+                        if dimensions[j] > 0:
+                            ratios.append(dimensions[i] / dimensions[j])
+                
+                features['max_aspect_ratio'] = max(ratios) if ratios else None
             
             # 复杂度评估（基于边数）
             # 注意：CadQuery的复杂度评估较为复杂，这里简化处理
@@ -138,6 +185,8 @@ class CADModelAnalyzer:
             
         except Exception as e:
             print(f"使用CadQuery分析模型时出错: {e}")
+            import traceback
+            traceback.print_exc()
         
         return features
     
