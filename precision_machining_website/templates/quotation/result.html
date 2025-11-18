@@ -77,6 +77,71 @@
                         {% endif %}
                     </div>
                 </div>
+                
+                {% if quotation.volume or quotation.surface_area %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>3D模型分析结果</h5>
+                        <table class="table table-bordered">
+                            {% if quotation.volume %}
+                            <tr>
+                                <td><strong>体积</strong></td>
+                                <td>{{ quotation.volume|floatformat:2 }} cm³</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.surface_area %}
+                            <tr>
+                                <td><strong>表面积</strong></td>
+                                <td>{{ quotation.surface_area|floatformat:2 }} cm²</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.bounding_box_length %}
+                            <tr>
+                                <td><strong>尺寸</strong></td>
+                                <td>{{ quotation.bounding_box_length|floatformat:2 }} × {{ quotation.bounding_box_width|floatformat:2 }} × {{ quotation.bounding_box_height|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.complexity_score %}
+                            <tr>
+                                <td><strong>复杂度评分</strong></td>
+                                <td>{{ quotation.complexity_score|floatformat:1 }}/5</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.max_aspect_ratio %}
+                            <tr>
+                                <td><strong>最大径长比</strong></td>
+                                <td>{{ quotation.max_aspect_ratio|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.min_radius %}
+                            <tr>
+                                <td><strong>最小拐角半径</strong></td>
+                                <td>{{ quotation.min_radius|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.min_tool_diameter %}
+                            <tr>
+                                <td><strong>最小刀具直径</strong></td>
+                                <td>{{ quotation.min_tool_diameter|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.machining_difficulty %}
+                            <tr>
+                                <td><strong>加工难度评分</strong></td>
+                                <td>{{ quotation.machining_difficulty|floatformat:1 }}/5</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

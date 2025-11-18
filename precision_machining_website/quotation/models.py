@@ -44,6 +44,18 @@ class QuotationRequest(models.Model):
     # 文件上传
     model_file = models.FileField(upload_to='quotation_models/', blank=True, verbose_name='3D模型文件')
     
+    # 3D模型分析结果
+    volume = models.FloatField(null=True, blank=True, verbose_name='体积 (cm³)')
+    surface_area = models.FloatField(null=True, blank=True, verbose_name='表面积 (cm²)')
+    bounding_box_length = models.FloatField(null=True, blank=True, verbose_name='包围盒长度 (mm)')
+    bounding_box_width = models.FloatField(null=True, blank=True, verbose_name='包围盒宽度 (mm)')
+    bounding_box_height = models.FloatField(null=True, blank=True, verbose_name='包围盒高度 (mm)')
+    min_radius = models.FloatField(null=True, blank=True, verbose_name='最小拐角半径 (mm)')
+    max_aspect_ratio = models.FloatField(null=True, blank=True, verbose_name='最大径长比')
+    complexity_score = models.FloatField(null=True, blank=True, verbose_name='复杂度评分')
+    min_tool_diameter = models.FloatField(null=True, blank=True, verbose_name='最小刀具直径 (mm)')
+    machining_difficulty = models.FloatField(null=True, blank=True, verbose_name='加工难度评分')
+    
     # 时间戳
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
     is_processed = models.BooleanField(default=False, verbose_name='已处理')

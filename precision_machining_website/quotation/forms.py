@@ -39,9 +39,10 @@ class QuotationRequestForm(forms.ModelForm):
                 raise forms.ValidationError("文件大小不能超过50MB")
             
             # 检查文件类型
-            valid_extensions = ['.step', '.stp', '.stl', '.igs', '.iges']
-            ext = str(model_file).split('.')[-1].lower()
-            if not ext in [e.replace('.', '') for e in valid_extensions]:
-                raise forms.ValidationError(f"只允许上传以下格式的文件: {', '.join(valid_extensions)}")
+            valid_extensions = ['.step', '.stp', '.stl', '.igs', '.iges', '.obj']
+            ext = '.' + str(model_file).split('.')[-1].lower()  # 保留点号便于比较
+            if ext not in valid_extensions:
+                # 强调STEP格式在提示中
+                raise forms.ValidationError(f"只允许上传以下格式的文件: {', '.join(valid_extensions)}。推荐使用STEP(.step/.stp)格式以获得最佳兼容性。")
                 
         return model_file
