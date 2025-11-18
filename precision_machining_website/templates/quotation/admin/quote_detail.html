@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}报价详情 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>报价详情</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>客户信息</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>姓名：</strong>{{ quote.name }}</p>
+                <p><strong>邮箱：</strong>{{ quote.email }}</p>
+                <p><strong>电话：</strong>{{ quote.phone }}</p>
+                <p><strong>创建时间：</strong>{{ quote.created_at|date:"Y-m-d H:i:s" }}</p>
+                <p><strong>处理状态：</strong>
+                    {% if quote.is_processed %}
+                        <span class="badge bg-success">已处理</span>
+                    {% else %}
+                        <span class="badge bg-warning">待处理</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>项目信息</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>加工类型：</strong>{{ quote.get_processing_type_display }}</p>
+                <p><strong>材料：</strong>{{ quote.get_material_display }}</p>
+                <p><strong>数量：</strong>{{ quote.quantity }}</p>
+                <p><strong>精度要求：</strong>{{ quote.accuracy }}</p>
+                <p><strong>表面处理：</strong>{{ quote.get_surface_treatment_display }}</p>
+                {% if quote.model_file %}
+                <p><strong>3D模型文件：</strong><a href="{{ quote.model_file.url }}" target="_blank">下载文件</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>附加说明</h5>
+            </div>
+            <div class="card-body">
+                {% if quote.description %}
+                    <p>{{ quote.description|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">无附加说明</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>3D模型分析结果</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>体积：</strong>{{ quote.volume|default:"未计算" }} cm³</p>
+                        <p><strong>表面积：</strong>{{ quote.surface_area|default:"未计算" }} cm²</p>
+                        <p><strong>包围盒尺寸：</strong>
+                            {% if quote.bounding_box_length and quote.bounding_box_width and quote.bounding_box_height %}
+                                {{ quote.bounding_box_length }} × {{ quote.bounding_box_width }} × {{ quote.bounding_box_height }} mm
+                            {% else %}
+                                未计算
+                            {% endif %}
+                        </p>
+                        <p><strong>最小拐角半径：</strong>{{ quote.min_radius|default:"未计算" }} mm</p>
+                        <p><strong>最大径长比：</strong>{{ quote.max_aspect_ratio|default:"未计算" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>复杂度评分：</strong>{{ quote.complexity_score|default:"未计算" }}</p>
+                        <p><strong>最小刀具直径：</strong>{{ quote.min_tool_diameter|default:"未计算" }} mm</p>
+                        <p><strong>加工难度评分：</strong>{{ quote.machining_difficulty|default:"未计算" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'quotation:admin_quote_list' %}" class="btn btn-secondary">返回列表</a>
+        {% if not quote.is_processed %}
+        <button type="button" class="btn btn-success" onclick="markAsProcessed({{ quote.id }})">标记为已处理</button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function markAsProcessed(quoteId) {
+    if (confirm('确定要将此报价标记为已处理吗？')) {
+        // 这里可以添加AJAX请求来更新处理状态
+        alert('在完整实现中，这将通过AJAX更新处理状态');
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

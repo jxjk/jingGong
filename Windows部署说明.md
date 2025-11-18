@@ -27,11 +27,25 @@ docker-compose -f docker-compose.windows.yml up --build
 
 首次运行会自动构建镜像并启动容器，过程可能需要几分钟时间。
 
-### 3. 访问应用
+### 3. 创建管理员账户
 
-服务启动后，在浏览器中访问 http://localhost:8000
+首次部署后，需要创建一个管理员账户来访问管理功能：
 
-### 4. 管理命令
+```bash
+docker-compose -f docker-compose.windows.yml exec web python manage.py createsuperuser
+```
+
+按照提示输入用户名、邮箱和密码完成创建。
+
+### 4. 访问应用
+
+服务启动后，在浏览器中访问以下地址：
+
+- 用户界面: http://localhost:8000
+- 管理后台: http://localhost:8000/admin/
+- 管理员面板: http://localhost:8000/quote/admin/dashboard/
+
+### 5. 管理命令
 
 #### 查看运行状态
 ```bash

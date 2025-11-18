@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}管理员仪表板 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>管理员仪表板</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">总报价数</h5>
+                <h2>{{ total_quotes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">已处理</h5>
+                <h2>{{ processed_quotes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">待处理</h5>
+                <h2>{{ pending_quotes }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>最近7天报价统计</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="recentQuotesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>按加工类型统计</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="typeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>快速操作</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'quotation:admin_quote_list' %}" class="btn btn-primary">查看所有报价</a>
+                <a href="{% url 'quotation:admin_export_csv' %}" class="btn btn-success">导出CSV数据</a>
+                <a href="{% url 'admin:index' %}" class="btn btn-secondary">Django管理后台</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 最近报价图表
+    const recentCtx = document.getElementById('recentQuotesChart').getContext('2d');
+    const recentData = [
+        {% for item in recent_quotes %}
+            { date: '{{ item.date }}', count: {{ item.count }} },
+        {% endfor %}
+    ];
+    
+    const recentLabels = recentData.map(item => item.date);
+    const recentValues = recentData.map(item => item.count);
+    
+    new Chart(recentCtx, {
+        type: 'line',
+        data: {
+            labels: recentLabels,
+            datasets: [{
+                label: '报价数量',
+                data: recentValues,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // 类型统计图表
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    const typeData = [
+        {% for item in quotes_by_type %}
+            { type: '{{ item.processing_type }}', count: {{ item.count }} },
+        {% endfor %}
+    ];
+    
+    const typeLabels = typeData.map(item => {
+        // 显示中文名称
+        switch(item.type) {
+            case 'cnc_milling': return 'CNC铣削';
+            case 'cnc_turning': return 'CNC车削';
+            case '3d_printing': return '3D打印';
+            default: return item.type;
+        }
+    });
+    const typeValues = typeData.map(item => item.count);
+    
+    new Chart(typeCtx, {
+        type: 'pie',
+        data: {
+            labels: typeLabels,
+            datasets: [{
+                data: typeValues,
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+{% endblock %}
