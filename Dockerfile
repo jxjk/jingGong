@@ -1,9 +1,9 @@
-FROM registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04
+FROM ubuntu:20.04
 
 # 避免交互式安装
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 设置apt使用阿里云镜像源
+# 设置apt使用阿里云镜像源（提高下载速度）
 RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
 
@@ -34,11 +34,14 @@ RUN pip3 install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && \
 # 复制项目文件
 COPY precision_machining_website/ .
 
+# 创建静态文件目录
+RUN mkdir -p static
+
 # 给予入口文件执行权限
 RUN chmod +x entrypoint.sh
 
-# 收集静态文件
-RUN python3 manage.py collectstatic --noinput
+# 收集静态文件（忽略错误）
+RUN python3 manage.py collectstatic --noinput || echo "Static collection failed, continuing..."
 
 # 暴露端口
 EXPOSE 8000

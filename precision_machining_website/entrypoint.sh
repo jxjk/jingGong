@@ -5,7 +5,7 @@ sleep 10
 
 # 收集静态文件
 echo "Collect static files"
-python3 manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput || echo "Warning: Static collection failed"
 
 # 应用数据库迁移
 echo "Apply database migrations"
