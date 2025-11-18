@@ -1,7 +1,11 @@
-FROM ubuntu:20.04
+FROM registry.docker-cn.com/library/ubuntu:20.04
 
 # 避免交互式安装
 ENV DEBIAN_FRONTEND=noninteractive
+
+# 设置apt使用国内镜像源
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
 
 # 设置pip使用国内镜像源
 ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
