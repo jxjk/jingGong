@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04
 
 # 避免交互式安装
 ENV DEBIAN_FRONTEND=noninteractive

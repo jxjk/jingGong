@@ -13,13 +13,14 @@ fi
 # 创建Docker配置目录
 mkdir -p /etc/docker
 
-# 创建daemon.json配置文件（使用阿里云镜像加速器）
+# 创建daemon.json配置文件（使用多个国内镜像加速器）
 cat > /etc/docker/daemon.json <<EOF
 {
   "registry-mirrors": [
     "https://registry.cn-hangzhou.aliyuncs.com",
     "https://docker.mirrors.ustc.edu.cn",
-    "https://hub-mirror.c.163.com"
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
   ]
 }
 EOF
@@ -39,3 +40,8 @@ if [ $? -eq 0 ]; then
 else
     echo "Docker服务重启失败，请手动检查配置"
 fi
+
+echo ""
+echo "如果仍然无法拉取镜像，可以尝试手动拉取并重新标记:"
+echo "  docker pull registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04"
+echo "  docker tag registry.cn-hangzhou.aliyuncs.com/docker/library/ubuntu:20.04 ubuntu:20.04"
