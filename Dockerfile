@@ -1,11 +1,16 @@
-FROM centos:7
+FROM ubuntu:20.04
 
-# 安装EPEL仓库和开发工具
-RUN yum -y update && \
-    yum -y install epel-release && \
-    yum -y groupinstall "Development Tools" && \
-    yum -y install python3 python3-devel python3-pip postgresql-devel && \
-    yum clean all
+# 避免交互式安装
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    libpq-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app

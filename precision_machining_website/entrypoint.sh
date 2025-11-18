@@ -1,17 +1,22 @@
 #!/bin/bash
 
-# Collect static files
+# 等待数据库就绪
+sleep 5
+
+# 收集静态文件
 echo "Collect static files"
 python manage.py collectstatic --noinput
 
-# Apply database migrations
+# 应用数据库迁移
 echo "Apply database migrations"
-python manage.py migrate
+python manage.py migrate --noinput
 
-# Create superuser
-echo "Create superuser"
-python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@example.com', 'admin') if not User.objects.filter(username='admin').exists() else None"
+# 创建超级用户（仅在环境变量设置时）
+if [ "$CREATE_SUPERUSER" = "true" ]; then
+    echo "Create superuser"
+    python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser('$DJANGO_SUPERUSER_USERNAME', '$DJANGO_SUPERUSER_EMAIL', '$DJANGO_SUPERUSER_PASSWORD') if not User.objects.filter(username='$DJANGO_SUPERUSER_USERNAME').exists() else None"
+fi
 
-# Start server
+# 启动服务器
 echo "Starting server"
 exec "$@"
