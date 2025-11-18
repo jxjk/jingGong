@@ -4,7 +4,7 @@ numpy>=1.21.0
 numpy-stl>=2.11.0
 
 # Web服务器
-gunicorn>=20.1.0
+gunicorn>=20.0.0
 
 # 用于处理STL和其他3D格式的额外库
 trimesh>=3.9.0
@@ -12,6 +12,9 @@ trimesh>=3.9.0
 
 # Pillow用于图像处理
 Pillow>=8.0.0
+
+# PostgreSQL数据库适配器
+psycopg2-binary>=2.8.0
 
 # OpenCASCADE CAD建模与分析库
 # 注意：python-opencascade无法通过pip直接安装，需要复杂编译过程

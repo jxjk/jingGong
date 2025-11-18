@@ -15,12 +15,14 @@ RUN apt-get update && apt-get install -y \
 # 设置工作目录
 WORKDIR /app
 
-# 复制依赖文件和入口文件
+# 复制依赖文件
 COPY requirements.txt .
-COPY precision_machining_website/entrypoint.sh .
 
 # 安装Python依赖
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+
+# 复制入口文件
+COPY precision_machining_website/entrypoint.sh .
 
 # 复制项目文件
 COPY precision_machining_website/ .
