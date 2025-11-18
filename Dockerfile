@@ -3,6 +3,10 @@ FROM ubuntu:20.04
 # 避免交互式安装
 ENV DEBIAN_FRONTEND=noninteractive
 
+# 设置pip使用国内镜像源
+ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ENV PIP_TRUSTED_HOST=mirrors.aliyun.com
+
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -15,14 +19,13 @@ RUN apt-get update && apt-get install -y \
 # 设置工作目录
 WORKDIR /app
 
-# 复制依赖文件
+# 复制依赖文件和入口文件
 COPY requirements.txt .
-
-# 安装Python依赖
-RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
-
-# 复制入口文件
 COPY precision_machining_website/entrypoint.sh .
+
+# 安装Python依赖（使用国内镜像源加速）
+RUN pip3 install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && \
+    pip3 install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 # 复制项目文件
 COPY precision_machining_website/ .
