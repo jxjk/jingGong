@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('gallery/', include('gallery.urls', namespace='gallery')),
+    path('quotation/', include('quotation.urls', namespace='quotation')),
 ]
 
 if settings.DEBUG:

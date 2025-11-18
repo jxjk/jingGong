@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}自助报价 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">自助报价系统</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">快速获取加工报价</h5>
+                <p class="card-text">
+                    通过我们的自助报价系统，您可以快速获得机械加工项目的参考价格。
+                    只需简单几步，即可了解您的项目大概费用范围。
+                </p>
+                <p class="card-text">
+                    报价流程：
+                </p>
+                <ol>
+                    <li>选择加工类型（CNC铣削/车削/3D打印）</li>
+                    <li>上传3D模型文件</li>
+                    <li>填写关键参数（材料、数量、精度要求等）</li>
+                    <li>获取参考价格区间</li>
+                </ol>
+                <a href="{% url 'quotation:request' %}" class="btn btn-primary">开始报价</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">注意事项</h5>
+                <ul>
+                    <li>报价结果仅供参考，实际价格可能有所差异</li>
+                    <li>支持的文件格式：STEP, STL, IGES等主流3D模型格式</li>
+                    <li>文件大小限制：不超过50MB</li>
+                    <li>如需精确报价，请联系我们的客服人员</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

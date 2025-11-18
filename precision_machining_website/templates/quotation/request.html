@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}填写报价信息 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">填写报价信息</h1>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>联系信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">姓名 *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">邮箱 *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.phone.id_for_label }}" class="form-label">电话 *</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="text-danger">{{ form.phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>项目信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.processing_type.id_for_label }}" class="form-label">加工类型 *</label>
+                        {{ form.processing_type }}
+                        {% if form.processing_type.errors %}
+                            <div class="text-danger">{{ form.processing_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.material.id_for_label }}" class="form-label">材料 *</label>
+                        {{ form.material }}
+                        {% if form.material.errors %}
+                            <div class="text-danger">{{ form.material.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.quantity.id_for_label }}" class="form-label">数量 *</label>
+                        {{ form.quantity }}
+                        {% if form.quantity.errors %}
+                            <div class="text-danger">{{ form.quantity.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>技术要求</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.accuracy.id_for_label }}" class="form-label">精度要求 *</label>
+                        {{ form.accuracy }}
+                        {% if form.accuracy.errors %}
+                            <div class="text-danger">{{ form.accuracy.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">请描述关键尺寸的精度要求，例如：±0.01mm</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.surface_treatment.id_for_label }}" class="form-label">表面处理</label>
+                        {{ form.surface_treatment }}
+                        {% if form.surface_treatment.errors %}
+                            <div class="text-danger">{{ form.surface_treatment.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>附件与说明</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.model_file.id_for_label }}" class="form-label">3D模型文件</label>
+                        {{ form.model_file }}
+                        {% if form.model_file.errors %}
+                            <div class="text-danger">{{ form.model_file.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">支持STEP、STL、IGES等格式，文件大小不超过50MB</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">附加说明</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">其他需要说明的技术要求或特殊需求</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">提交并获取报价</button>
+            <a href="{% url 'quotation:home' %}" class="btn btn-secondary">返回</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

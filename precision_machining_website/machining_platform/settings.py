@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gallery',  # 添加作品展示应用
+    'quotation',  # 添加报价应用
 ]
 
 MIDDLEWARE = [

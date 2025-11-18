@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}报价结果 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">报价结果</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>参考报价</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5>重要提示</h5>
+                    <p>以下报价仅为参考价格，实际价格可能会因为具体技术要求、工艺难度等因素有所不同。</p>
+                    <p>如需精确报价，请联系我们的客服人员，我们将为您提供专业的咨询服务。</p>
+                </div>
+                
+                <div class="pricing-result text-center py-4">
+                    <h3 class="display-4 text-primary">¥{{ price_min }} - ¥{{ price_max }}</h3>
+                    <p class="lead">参考价格区间</p>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>项目信息</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>加工类型</strong></td>
+                                <td>{{ quotation.get_processing_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>材料</strong></td>
+                                <td>{{ quotation.get_material_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>数量</strong></td>
+                                <td>{{ quotation.quantity }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>精度要求</strong></td>
+                                <td>{{ quotation.accuracy }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>表面处理</strong></td>
+                                <td>{{ quotation.get_surface_treatment_display }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>联系信息</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>姓名</strong></td>
+                                <td>{{ quotation.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>邮箱</strong></td>
+                                <td>{{ quotation.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>电话</strong></td>
+                                <td>{{ quotation.phone }}</td>
+                            </tr>
+                        </table>
+                        
+                        {% if quotation.description %}
+                        <h5>附加说明</h5>
+                        <p>{{ quotation.description|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">获取精确报价</h5>
+                <p class="card-text">
+                    想要获得更精确的报价？请联系我们专业的技术团队。
+                </p>
+                <ul class="list-unstyled">
+                    <li><strong>电话：</strong> 138-XXXX-XXXX</li>
+                    <li><strong>邮箱：</strong> info@example.com</li>
+                    <li><strong>工作时间：</strong> 周一至周五 9:00-18:00</li>
+                </ul>
+                <button class="btn btn-success" onclick="contactUs()">联系客服</button>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">服务优势</h5>
+                <ul>
+                    <li>10年以上精密加工经验</li>
+                    <li>拥有多种先进加工设备</li>
+                    <li>严格的质量控制体系</li>
+                    <li>快速打样和批量生产能力</li>
+                    <li>专业技术支持服务</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'quotation:request' %}" class="btn btn-primary">重新报价</a>
+        <a href="{% url 'gallery:work_list' %}" class="btn btn-secondary">查看作品案例</a>
+    </div>
+</div>
+
+<script>
+function contactUs() {
+    alert("请联系我们的客服：138-XXXX-XXXX 或发送邮件至 info@example.com");
+}
+</script>
+{% endblock %}
