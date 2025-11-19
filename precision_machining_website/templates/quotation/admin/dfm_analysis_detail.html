@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}DFM分析详情 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">DFM分析详情</h1>
+        <a href="{% url 'quotation:admin_dfm_list' %}" class="btn btn-secondary mb-3">返回列表</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <td><strong>ID:</strong></td>
+                        <td>{{ analysis.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>姓名:</strong></td>
+                        <td>{{ analysis.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>邮箱:</strong></td>
+                        <td>{{ analysis.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>公司:</strong></td>
+                        <td>{{ analysis.company|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>创建时间:</strong></td>
+                        <td>{{ analysis.created_at|date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>处理状态:</strong></td>
+                        <td>
+                            {% if analysis.is_processed %}
+                                <span class="badge bg-success">已处理</span>
+                            {% else %}
+                                <span class="badge bg-warning">待处理</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">模型特征分析</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <td><strong>体积:</strong></td>
+                                <td>{{ analysis.volume|floatformat:2 }} cm³</td>
+                            </tr>
+                            <tr>
+                                <td><strong>表面积:</strong></td>
+                                <td>{{ analysis.surface_area|floatformat:2 }} cm²</td>
+                            </tr>
+                            <tr>
+                                <td><strong>包围盒尺寸:</strong></td>
+                                <td>{{ analysis.bounding_box_length|floatformat:2 }} × {{ analysis.bounding_box_width|floatformat:2 }} × {{ analysis.bounding_box_height|floatformat:2 }} mm</td>
+                            </tr>
+                            <tr>
+                                <td><strong>最小拐角半径:</strong></td>
+                                <td>{{ analysis.min_radius|floatformat:2 }} mm</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <td><strong>最小刀具直径:</strong></td>
+                                <td>{{ analysis.min_tool_diameter|floatformat:2 }} mm</td>
+                            </tr>
+                            <tr>
+                                <td><strong>最大径长比:</strong></td>
+                                <td>{{ analysis.max_aspect_ratio|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>复杂度评分:</strong></td>
+                                <td>{{ analysis.complexity_score|floatformat:2 }}/10</td>
+                            </tr>
+                            <tr>
+                                <td><strong>加工难度评分:</strong></td>
+                                <td>{{ analysis.machining_difficulty|floatformat:2 }}/10</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">优化建议</h5>
+            </div>
+            <div class="card-body">
+                {% if analysis.recommendations %}
+                    <p>{{ analysis.recommendations|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">暂无优化建议</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="status" class="form-label">处理状态</label>
+                    <select class="form-select" id="status">
+                        <option value="0" {% if not analysis.is_processed %}selected{% endif %}>待处理</option>
+                        <option value="1" {% if analysis.is_processed %}selected{% endif %}>已处理</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary w-100 mb-2">保存</button>
+                <button type="button" class="btn btn-success w-100 mb-2">联系用户</button>
+                <button type="button" class="btn btn-danger w-100">删除记录</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">模型文件</h5>
+            </div>
+            <div class="card-body">
+                {% if analysis.model_file %}
+                    <p><a href="{{ analysis.model_file.url }}" class="btn btn-outline-primary" target="_blank">下载模型文件</a></p>
+                {% else %}
+                    <p class="text-muted">无模型文件</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.quotation_home, name='quotation_home'),
     path('request/', views.quotation_request, name='quotation_request'),
     path('result/<int:quotation_id>/', views.quotation_result, name='quotation_result'),
+    path('dfm/', views.dfm_analysis, name='dfm_analysis'),
     
     # 管理端URL
     path('admin/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
@@ -17,4 +18,6 @@ urlpatterns = [
     path('admin/factors/', admin_views.adjustment_factors, name='admin_factors'),
     path('admin/factors/create/', admin_views.create_adjustment_factor, name='admin_factor_create'),
     path('admin/factors/<int:factor_id>/edit/', admin_views.edit_adjustment_factor, name='admin_factor_edit'),
+    path('admin/dfm/', admin_views.dfm_analysis_list, name='admin_dfm_list'),
+    path('admin/dfm/<int:analysis_id>/', admin_views.dfm_analysis_detail, name='admin_dfm_detail'),
 ]

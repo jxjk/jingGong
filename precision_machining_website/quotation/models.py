@@ -85,3 +85,41 @@ class QuotationAdjustmentFactor(models.Model):
         
     def __str__(self):
         return f"{self.name} ({self.value})"
+
+
+class DFMAnalysis(models.Model):
+    """DFM分析模型"""
+    # 基本信息
+    name = models.CharField(max_length=100, verbose_name='分析名称')
+    email = models.EmailField(verbose_name='邮箱')
+    company = models.CharField(max_length=100, blank=True, verbose_name='公司')
+    
+    # 文件上传
+    model_file = models.FileField(upload_to='dfm_models/', verbose_name='3D模型文件')
+    
+    # 分析结果
+    volume = models.FloatField(null=True, blank=True, verbose_name='体积 (cm³)')
+    surface_area = models.FloatField(null=True, blank=True, verbose_name='表面积 (cm²)')
+    bounding_box_length = models.FloatField(null=True, blank=True, verbose_name='包围盒长度 (mm)')
+    bounding_box_width = models.FloatField(null=True, blank=True, verbose_name='包围盒宽度 (mm)')
+    bounding_box_height = models.FloatField(null=True, blank=True, verbose_name='包围盒高度 (mm)')
+    min_radius = models.FloatField(null=True, blank=True, verbose_name='最小拐角半径 (mm)')
+    max_aspect_ratio = models.FloatField(null=True, blank=True, verbose_name='最大径长比')
+    complexity_score = models.FloatField(null=True, blank=True, verbose_name='复杂度评分')
+    min_tool_diameter = models.FloatField(null=True, blank=True, verbose_name='最小刀具直径 (mm)')
+    machining_difficulty = models.FloatField(null=True, blank=True, verbose_name='加工难度评分')
+    
+    # DFM建议
+    recommendations = models.TextField(blank=True, verbose_name='优化建议')
+    
+    # 时间戳
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    is_processed = models.BooleanField(default=False, verbose_name='已处理')
+    
+    class Meta:
+        verbose_name = 'DFM分析'
+        verbose_name_plural = 'DFM分析'
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"{self.name}的DFM分析 - {self.created_at.strftime('%Y-%m-%d')}"

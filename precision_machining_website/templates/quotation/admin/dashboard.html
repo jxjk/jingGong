@@ -1,52 +1,59 @@
 {% extends 'base.html' %}
 
-{% block title %}管理面板 - 精工智造{% endblock %}
+{% block title %}管理后台 - 精工智造{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">管理面板</h1>
+        <h1 class="mb-4">管理后台</h1>
     </div>
 </div>
 
 <div class="row">
-    <!-- 统计卡片 -->
     <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">总报价数</h5>
-                <p class="card-text display-4">{{ total_quotes }}</p>
-            </div>
+        <div class="list-group">
+            <a href="{% url 'quotation:admin_dashboard' %}" class="list-group-item list-group-item-action active">
+                <i class="fas fa-tachometer-alt me-2"></i>仪表盘
+            </a>
+            <a href="{% url 'quotation:admin_quote_list' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-file-invoice me-2"></i>报价请求
+            </a>
+            <a href="{% url 'quotation:admin_dfm_list' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-cogs me-2"></i>DFM分析
+            </a>
+            <a href="{% url 'quotation:admin_factors' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-sliders-h me-2"></i>报价因子
+            </a>
         </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">总用户数</h5>
-                <p class="card-text display-4">{{ total_users }}</p>
+    <div class="col-md-9">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">报价请求</h5>
+                        <p class="card-text display-6">{{ total_quotes }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">DFM分析</h5>
+                        <p class="card-text display-6">{{ total_dfm_analyses }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">未处理请求</h5>
+                        <p class="card-text display-6">{{ pending_quotes }}</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">今日报价</h5>
-                <p class="card-text display-4">{{ today_quotes }}</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">待处理</h5>
-                <p class="card-text display-4">{{ pending_quotes }}</p>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="row mt-4">
     <div class="col-md-8">
@@ -72,52 +79,55 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>最近报价</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>客户姓名</th>
-                                <th>加工类型</th>
-                                <th>材料</th>
-                                <th>数量</th>
-                                <th>创建时间</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for quote in recent_quotes_list %}
-                            <tr>
-                                <td>{{ quote.id }}</td>
-                                <td>{{ quote.name }}</td>
-                                <td>{{ quote.get_processing_type_display }}</td>
-                                <td>{{ quote.get_material_display }}</td>
-                                <td>{{ quote.quantity }}</td>
-                                <td>{{ quote.created_at|date:"Y-m-d H:i" }}</td>
-                                <td>
-                                    <a href="{% url 'quotation:admin_quote_detail' quote.id %}" class="btn btn-sm btn-primary">详情</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center">暂无报价数据</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">最近报价请求</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>姓名</th>
+                                        <th>加工类型</th>
+                                        <th>材料</th>
+                                        <th>数量</th>
+                                        <th>创建时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for quote in recent_quotes_list %}
+                                    <tr>
+                                        <td>{{ quote.name }}</td>
+                                        <td>{{ quote.get_processing_type_display }}</td>
+                                        <td>{{ quote.get_material_display }}</td>
+                                        <td>{{ quote.quantity }}</td>
+                                        <td>{{ quote.created_at|date:"m-d H:i" }}</td>
+                                        <td>
+                                            {% if quote.is_processed %}
+                                                <span class="badge bg-success">已处理</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">待处理</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'quotation:admin_quote_detail' quote.id %}" class="btn btn-sm btn-primary">查看详情</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">暂无报价请求</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                
-                <a href="{% url 'quotation:admin_quote_list' %}" class="btn btn-primary">查看所有报价</a>
-                <a href="{% url 'quotation:admin_factors' %}" class="btn btn-info">报价调控因子</a>
-                <a href="{% url 'quotation:admin_export_csv' %}" class="btn btn-success">导出CSV数据</a>
-                <a href="{% url 'admin:index' %}" class="btn btn-secondary">Django管理后台</a>
             </div>
         </div>
     </div>

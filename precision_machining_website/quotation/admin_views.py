@@ -1,43 +1,34 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
-from django.db.models import Count
-from django.contrib import messages
-from .models import QuotationRequest, QuotationAdjustmentFactor
+from django.core.paginator import Paginator
+from .models import QuotationRequest, QuotationAdjustmentFactor, DFMAnalysis
 from .forms import QuotationAdjustmentFactorForm
 import csv
 from datetime import datetime, timedelta
 
+def is_admin(user):
+    return user.is_staff
 
-@staff_member_required
+
+@user_passes_test(is_admin)
 def admin_dashboard(request):
-    """管理员仪表板"""
-    # 获取统计数据
+    """管理员仪表盘"""
     total_quotes = QuotationRequest.objects.count()
-    processed_quotes = QuotationRequest.objects.filter(is_processed=True).count()
     pending_quotes = QuotationRequest.objects.filter(is_processed=False).count()
+    total_dfm_analyses = DFMAnalysis.objects.count()
     
-    # 最近7天的报价统计
-    seven_days_ago = datetime.now() - timedelta(days=7)
-    recent_quotes = QuotationRequest.objects.filter(
-        created_at__gte=seven_days_ago
-    ).extra(select={'date': 'date(created_at)'}).values('date').annotate(count=Count('id'))
+    recent_quotes = QuotationRequest.objects.all().order_by('-created_at')[:5]
     
-    # 按加工类型统计
-    quotes_by_type = QuotationRequest.objects.values('processing_type').annotate(count=Count('id'))
-    
-    context = {
+    return render(request, 'quotation/admin/dashboard.html', {
         'total_quotes': total_quotes,
-        'processed_quotes': processed_quotes,
         'pending_quotes': pending_quotes,
-        'recent_quotes': recent_quotes,
-        'quotes_by_type': quotes_by_type,
-    }
-    return render(request, 'quotation/admin/dashboard.html', context)
+        'total_dfm_analyses': total_dfm_analyses,
+        'recent_quotes': recent_quotes
+    })
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def quote_list(request):
     """报价列表"""
     quotes = QuotationRequest.objects.all().order_by('-created_at')
@@ -60,7 +51,7 @@ def quote_list(request):
     return render(request, 'quotation/admin/quote_list.html', context)
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def quote_detail(request, quote_id):
     """报价详情"""
     quote = get_object_or_404(QuotationRequest, id=quote_id)
@@ -70,7 +61,7 @@ def quote_detail(request, quote_id):
     return render(request, 'quotation/admin/quote_detail.html', context)
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def export_quotes_csv(request):
     """导出报价数据为CSV格式"""
     response = HttpResponse(content_type='text/csv')
@@ -100,7 +91,7 @@ def export_quotes_csv(request):
     return response
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def adjustment_factors(request):
     """报价调控因子列表"""
     factors = QuotationAdjustmentFactor.objects.all().order_by('name')
@@ -110,7 +101,7 @@ def adjustment_factors(request):
     return render(request, 'quotation/admin/factors.html', context)
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def create_adjustment_factor(request):
     """创建报价调控因子"""
     if request.method == 'POST':
@@ -128,7 +119,7 @@ def create_adjustment_factor(request):
     return render(request, 'quotation/admin/factor_form.html', context)
 
 
-@staff_member_required
+@user_passes_test(is_admin)
 def edit_adjustment_factor(request, factor_id):
     """编辑报价调控因子"""
     factor = get_object_or_404(QuotationAdjustmentFactor, id=factor_id)
@@ -146,3 +137,25 @@ def edit_adjustment_factor(request, factor_id):
         'form': form,
     }
     return render(request, 'quotation/admin/factor_form.html', context)
+
+
+@user_passes_test(is_admin)
+def dfm_analysis_list(request):
+    """DFM分析列表"""
+    analyses = DFMAnalysis.objects.all().order_by('-created_at')
+    paginator = Paginator(analyses, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'quotation/admin/dfm_analysis_list.html', {
+        'page_obj': page_obj
+    })
+
+
+@user_passes_test(is_admin)
+def dfm_analysis_detail(request, analysis_id):
+    """DFM分析详情"""
+    analysis = get_object_or_404(DFMAnalysis, id=analysis_id)
+    return render(request, 'quotation/admin/dfm_analysis_detail.html', {
+        'analysis': analysis
+    })

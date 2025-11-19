@@ -198,3 +198,130 @@ def quotation_result(request, quotation_id):
     }
     
     return render(request, 'quotation/result.html', context)
+
+def dfm_analysis(request):
+    """DFM分析工具"""
+    if request.method == 'POST':
+        # 处理上传的3D模型文件
+        model_file = request.FILES.get('model_file')
+        if model_file:
+            try:
+                # 保存文件到临时位置
+                temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp')
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_file_path = os.path.join(temp_dir, model_file.name)
+                
+                with open(temp_file_path, 'wb+') as destination:
+                    for chunk in model_file.chunks():
+                        destination.write(chunk)
+                
+                # 分析模型
+                analyzer = CADModelAnalyzer(temp_file_path)
+                features = analyzer.analyze()
+                
+                # 进行DFM分析
+                dfm_recommendations = _generate_dfm_recommendations(features)
+                
+                # 清理临时文件
+                os.remove(temp_file_path)
+                
+                context = {
+                    'features': features,
+                    'recommendations': dfm_recommendations,
+                    'analysis_complete': True
+                }
+                return render(request, 'quotation/dfm_analysis.html', context)
+            except Exception as e:
+                messages.error(request, f'分析过程中出错: {str(e)}')
+        else:
+            messages.error(request, '请上传一个3D模型文件')
+    
+    return render(request, 'quotation/dfm_analysis.html')
+
+def _generate_dfm_recommendations(features):
+    """根据模型特征生成DFM建议"""
+    recommendations = []
+    
+    # 检查最小拐角半径
+    min_radius = features.get('min_radius')
+    if min_radius is not None:
+        if min_radius < 0.5:
+            recommendations.append({
+                'type': 'warning',
+                'title': '极小拐角半径',
+                'description': f'检测到最小拐角半径为 {min_radius:.2f}mm，这可能会导致刀具磨损加剧或加工困难。',
+                'suggestion': '建议增加拐角半径至0.5mm以上，以提高加工效率和刀具寿命。'
+            })
+        elif min_radius < 1.0:
+            recommendations.append({
+                'type': 'info',
+                'title': '较小拐角半径',
+                'description': f'检测到最小拐角半径为 {min_radius:.2f}mm，属于较小半径。',
+                'suggestion': '考虑增加拐角半径至1mm以上，以降低加工难度。'
+            })
+    
+    # 检查最小刀具直径
+    min_tool_diameter = features.get('min_tool_diameter')
+    if min_tool_diameter is not None:
+        if min_tool_diameter < 1.0:
+            recommendations.append({
+                'type': 'warning',
+                'title': '极小刀具直径需求',
+                'description': f'检测到需要使用直径小于 {min_tool_diameter:.2f}mm 的刀具进行加工。',
+                'suggestion': '小直径刀具易断且成本高，建议优化设计避免过小的结构。'
+            })
+        elif min_tool_diameter < 2.0:
+            recommendations.append({
+                'type': 'info',
+                'title': '较小刀具直径需求',
+                'description': f'检测到需要使用直径小于 {min_tool_diameter:.2f}mm 的刀具进行加工。',
+                'suggestion': '小直径刀具加工效率较低，考虑是否可以调整设计。'
+            })
+    
+    # 检查最大径长比
+    max_aspect_ratio = features.get('max_aspect_ratio')
+    if max_aspect_ratio is not None and max_aspect_ratio > 5.0:
+        recommendations.append({
+            'type': 'warning',
+            'title': '高径长比特征',
+            'description': f'检测到特征的径长比达到 {max_aspect_ratio:.2f}，属于高径长比结构。',
+            'suggestion': '高径长比特征容易导致振动和变形，建议增加支撑结构或优化几何形状。'
+        })
+    
+    # 检查复杂度评分
+    complexity_score = features.get('complexity_score')
+    if complexity_score is not None:
+        if complexity_score > 8.0:
+            recommendations.append({
+                'type': 'warning',
+                'title': '高复杂度设计',
+                'description': f'模型复杂度评分为 {complexity_score:.2f}（满分10分），属于高复杂度设计。',
+                'suggestion': '高复杂度会增加加工难度和成本，考虑是否可以简化设计。'
+            })
+        elif complexity_score > 5.0:
+            recommendations.append({
+                'type': 'info',
+                'title': '中等复杂度设计',
+                'description': f'模型复杂度评分为 {complexity_score:.2f}（满分10分）。',
+                'suggestion': '中等复杂度设计，注意加工过程中的质量控制。'
+            })
+    
+    # 检查加工难度评分
+    machining_difficulty = features.get('machining_difficulty')
+    if machining_difficulty is not None:
+        if machining_difficulty > 8.0:
+            recommendations.append({
+                'type': 'warning',
+                'title': '高加工难度',
+                'description': f'加工难度评分为 {machining_difficulty:.2f}（满分10分），属于高难度加工。',
+                'suggestion': '高难度加工需要更专业的设备和工艺，可能导致成本显著增加。'
+            })
+        elif machining_difficulty > 5.0:
+            recommendations.append({
+                'type': 'info',
+                'title': '中等加工难度',
+                'description': f'加工难度评分为 {machining_difficulty:.2f}（满分10分）。',
+                'suggestion': '中等加工难度，需要经验丰富的操作人员。'
+            })
+    
+    return recommendations

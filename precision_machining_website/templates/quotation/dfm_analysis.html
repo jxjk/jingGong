@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}DFM分析工具 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">DFM分析工具</h1>
+        <p class="lead">设计可制造性(DFM)分析工具可帮助您优化设计，提高加工效率并降低成本。</p>
+    </div>
+</div>
+
+{% if not analysis_complete %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">上传3D模型进行DFM分析</h5>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="model_file" class="form-label">3D模型文件</label>
+                        <input type="file" class="form-control" id="model_file" name="model_file" accept=".step,.stp,.stl,.igs,.iges">
+                        <div class="form-text">支持的格式：STEP (.step, .stp)、STL (.stl)、IGES (.igs, .iges)</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">开始分析</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">DFM分析说明</h5>
+                <p>DFM(Design for Manufacturing)分析可以帮助您：</p>
+                <ul>
+                    <li>识别设计中的潜在制造问题</li>
+                    <li>提出优化建议以降低成本</li>
+                    <li>提高加工效率和产品质量</li>
+                </ul>
+                <p class="text-muted">注意：分析结果仅供参考，具体制造方案请咨询我们的工程师。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">模型特征分析</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <td><strong>体积:</strong></td>
+                                <td>{{ features.volume|floatformat:2 }} cm³</td>
+                            </tr>
+                            <tr>
+                                <td><strong>表面积:</strong></td>
+                                <td>{{ features.surface_area|floatformat:2 }} cm²</td>
+                            </tr>
+                            <tr>
+                                <td><strong>包围盒尺寸:</strong></td>
+                                <td>{{ features.bounding_box_length|floatformat:2 }} × {{ features.bounding_box_width|floatformat:2 }} × {{ features.bounding_box_height|floatformat:2 }} mm</td>
+                            </tr>
+                            <tr>
+                                <td><strong>最小拐角半径:</strong></td>
+                                <td>{{ features.min_radius|floatformat:2 }} mm</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <td><strong>最小刀具直径:</strong></td>
+                                <td>{{ features.min_tool_diameter|floatformat:2 }} mm</td>
+                            </tr>
+                            <tr>
+                                <td><strong>最大径长比:</strong></td>
+                                <td>{{ features.max_aspect_ratio|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>复杂度评分:</strong></td>
+                                <td>{{ features.complexity_score|floatformat:2 }}/10</td>
+                            </tr>
+                            <tr>
+                                <td><strong>加工难度评分:</strong></td>
+                                <td>{{ features.machining_difficulty|floatformat:2 }}/10</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">DFM优化建议</h5>
+            </div>
+            <div class="card-body">
+                {% if recommendations %}
+                    {% for recommendation in recommendations %}
+                        <div class="alert alert-{% if recommendation.type == 'warning' %}warning{% else %}info{% endif %} d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                {% if recommendation.type == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="alert-heading">{{ recommendation.title }}</h6>
+                                <p class="mb-1">{{ recommendation.description }}</p>
+                                <p class="mb-0"><strong>建议:</strong> {{ recommendation.suggestion }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">恭喜！</h6>
+                        <p class="mb-0">未发现明显的制造问题，您的设计具有良好的可制造性。</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'quotation:dfm_analysis' %}" class="btn btn-primary">重新分析</a>
+            <a href="{% url 'quotation:quotation_request' %}" class="btn btn-secondary">获取报价</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
