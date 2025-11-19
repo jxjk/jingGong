@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form.instance.name|default:"新建因子" }} - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">{% if form.instance.name %}编辑因子{% else %}新建因子{% endif %}</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">因子名称</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">描述</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.value.id_for_label }}" class="form-label">因子值</label>
+                        {{ form.value }}
+                        {% if form.value.errors %}
+                            <div class="text-danger">{{ form.value.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="form-check-label">是否启用</label>
+                        {% if form.is_active.errors %}
+                            <div class="text-danger">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="{% url 'quotation:admin_factors' %}" class="btn btn-secondary">取消</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>使用说明</h5>
+            </div>
+            <div class="card-body">
+                <p>报价调控因子用于调整系统自动计算的报价结果：</p>
+                <ul>
+                    <li><strong>因子值</strong>大于1会增加报价</li>
+                    <li><strong>因子值</strong>小于1会降低报价</li>
+                    <li>设置为<strong>1.0</strong>表示不调整</li>
+                    <li>可以<strong>启用/禁用</strong>因子来控制是否应用</li>
+                </ul>
+                <p>示例：</p>
+                <ul>
+                    <li>利润率因子：1.2 (增加20%利润)</li>
+                    <li>市场调节因子：0.95 (降价5%提高竞争力)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import QuotationRequest
+from .models import QuotationRequest, QuotationAdjustmentFactor
 
 @admin.register(QuotationRequest)
 class QuotationRequestAdmin(admin.ModelAdmin):
@@ -27,3 +27,23 @@ class QuotationRequestAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'is_processed')
         }),
     )
+
+
+@admin.register(QuotationAdjustmentFactor)
+class QuotationAdjustmentFactorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value', 'is_active', 'updated_at')
+    list_filter = ('is_active', 'created_at', 'updated_at')
+    search_fields = ('name', 'description')
+    list_editable = ('value', 'is_active')
+    
+    fieldsets = (
+        ('基本信息', {
+            'fields': ('name', 'description', 'value', 'is_active')
+        }),
+        ('时间信息', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')

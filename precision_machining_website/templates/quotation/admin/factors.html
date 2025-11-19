@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}报价调控因子 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">报价调控因子</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>因子列表</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>因子名称</th>
+                                <th>当前值</th>
+                                <th>描述</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in factors %}
+                            <tr>
+                                <td>{{ factor.name }}</td>
+                                <td>{{ factor.value }}</td>
+                                <td>{{ factor.description|truncatewords:10 }}</td>
+                                <td>
+                                    {% if factor.is_active %}
+                                        <span class="badge bg-success">启用</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">禁用</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'quotation:admin_factor_edit' factor.id %}" class="btn btn-sm btn-primary">编辑</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">暂无调控因子数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <a href="{% url 'quotation:admin_factor_create' %}" class="btn btn-success">添加新因子</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

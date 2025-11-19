@@ -1,26 +1,25 @@
 from django import forms
-from .models import QuotationRequest
+from .models import QuotationRequest, QuotationAdjustmentFactor
 
 class QuotationRequestForm(forms.ModelForm):
     """报价请求表单"""
-    
     class Meta:
         model = QuotationRequest
-        fields = [
-            'name', 'email', 'phone', 'processing_type', 'material',
-            'quantity', 'accuracy', 'surface_treatment', 'description', 'model_file'
-        ]
+        fields = ['name', 'email', 'phone', 'processing_type', 'material', 
+                 'quantity', 'accuracy', 'surface_treatment', 'description', 'model_file']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'processing_type': forms.Select(attrs={'class': 'form-control'}),
-            'material': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'accuracy': forms.TextInput(attrs={'class': 'form-control'}),
-            'surface_treatment': forms.Select(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'model_file': forms.FileInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class QuotationAdjustmentFactorForm(forms.ModelForm):
+    """报价调控因子表单"""
+    class Meta:
+        model = QuotationAdjustmentFactor
+        fields = ['name', 'description', 'value', 'is_active']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'value': forms.NumberInput(attrs={'step': '0.01'}),
         }
         
     def clean_quantity(self):

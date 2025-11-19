@@ -67,3 +67,21 @@ class QuotationRequest(models.Model):
         
     def __str__(self):
         return f"{self.name}的报价请求 - {self.created_at.strftime('%Y-%m-%d')}"
+
+
+class QuotationAdjustmentFactor(models.Model):
+    """报价调控因子模型"""
+    name = models.CharField(max_length=100, unique=True, verbose_name='因子名称')
+    description = models.TextField(blank=True, verbose_name='描述')
+    value = models.FloatField(default=1.0, verbose_name='因子值')
+    is_active = models.BooleanField(default=True, verbose_name='是否启用')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    
+    class Meta:
+        verbose_name = '报价调控因子'
+        verbose_name_plural = '报价调控因子'
+        ordering = ['name']
+        
+    def __str__(self):
+        return f"{self.name} ({self.value})"

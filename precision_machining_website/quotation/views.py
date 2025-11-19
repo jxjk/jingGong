@@ -2,9 +2,10 @@ import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.conf import settings
-from .models import QuotationRequest
+from .models import QuotationRequest, QuotationAdjustmentFactor
 from .forms import QuotationRequestForm
 from .cad_analyzer import CADModelAnalyzer
+import numpy as np
 
 def quotation_home(request):
     """报价模块首页"""
@@ -92,9 +93,10 @@ def quotation_result(request, quotation_id):
         'factors': []
     }
     
-    # 体积因子（cm³）
+    # 体积因子（cm³）- 使用对数函数限制因子增长
     if quotation.volume:
-        volume_factor = (1 + quotation.volume / 1000.0)
+        # 使用对数函数限制因子增长，避免大模型导致价格过高
+        volume_factor = 1 + (np.log10(max(1, quotation.volume)) / 10.0)
         model_factor *= volume_factor
         factor_details['factors'].append({
             'name': '体积因子',
@@ -102,9 +104,10 @@ def quotation_result(request, quotation_id):
             'description': f'体积: {quotation.volume:.2f} cm³'
         })
     
-    # 表面积因子（cm²）
+    # 表面积因子（cm²）- 使用对数函数限制因子增长
     if quotation.surface_area:
-        surface_factor = (1 + quotation.surface_area / 500.0)
+        # 使用对数函数限制因子增长，避免大模型导致价格过高
+        surface_factor = 1 + (np.log10(max(1, quotation.surface_area)) / 10.0)
         model_factor *= surface_factor
         factor_details['factors'].append({
             'name': '表面积因子',
@@ -162,8 +165,20 @@ def quotation_result(request, quotation_id):
             'description': f'最大径长比: {quotation.max_aspect_ratio:.2f}'
         })
     
+    # 应用管理员设置的调控因子
+    adjustment_factors = QuotationAdjustmentFactor.objects.filter(is_active=True)
+    adjustment_factor_value = 1.0
+    if adjustment_factors.exists():
+        for factor in adjustment_factors:
+            adjustment_factor_value *= factor.value
+            factor_details['factors'].append({
+                'name': f'调控因子[{factor.name}]',
+                'value': factor.value,
+                'description': factor.description or f'调控因子: {factor.name}'
+            })
+    
     # 计算最终价格
-    estimated_price = base_price * material_multiplier * quantity_factor * model_factor
+    estimated_price = base_price * material_multiplier * quantity_factor * model_factor * adjustment_factor_value
     
     # 计算价格区间（±10%）
     price_min = estimated_price * 0.9

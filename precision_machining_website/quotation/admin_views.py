@@ -1,9 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.db.models import Count
-from .models import QuotationRequest
+from django.contrib import messages
+from .models import QuotationRequest, QuotationAdjustmentFactor
+from .forms import QuotationAdjustmentFactorForm
 import csv
 from datetime import datetime, timedelta
 
@@ -96,3 +98,51 @@ def export_quotes_csv(request):
         ])
     
     return response
+
+
+@staff_member_required
+def adjustment_factors(request):
+    """报价调控因子列表"""
+    factors = QuotationAdjustmentFactor.objects.all().order_by('name')
+    context = {
+        'factors': factors,
+    }
+    return render(request, 'quotation/admin/factors.html', context)
+
+
+@staff_member_required
+def create_adjustment_factor(request):
+    """创建报价调控因子"""
+    if request.method == 'POST':
+        form = QuotationAdjustmentFactorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '因子创建成功！')
+            return redirect('quotation:admin_factors')
+    else:
+        form = QuotationAdjustmentFactorForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'quotation/admin/factor_form.html', context)
+
+
+@staff_member_required
+def edit_adjustment_factor(request, factor_id):
+    """编辑报价调控因子"""
+    factor = get_object_or_404(QuotationAdjustmentFactor, id=factor_id)
+    
+    if request.method == 'POST':
+        form = QuotationAdjustmentFactorForm(request.POST, instance=factor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '因子更新成功！')
+            return redirect('quotation:admin_factors')
+    else:
+        form = QuotationAdjustmentFactorForm(instance=factor)
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'quotation/admin/factor_form.html', context)
