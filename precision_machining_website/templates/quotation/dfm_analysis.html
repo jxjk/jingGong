@@ -5,8 +5,8 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">DFM分析工具</h1>
-        <p class="lead">设计可制造性(DFM)分析工具可帮助您优化设计，提高加工效率并降低成本。</p>
+        <h1 class="mb-4">快速模型体检</h1>
+        <p class="lead">我们的初级制造顾问将对您的模型进行基础规则检查，帮助您避免常见的设计问题。</p>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">上传3D模型进行DFM分析</h5>
+                <h5 class="card-title">上传3D模型进行快速体检</h5>
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
@@ -23,7 +23,7 @@
                         <input type="file" class="form-control" id="model_file" name="model_file" accept=".step,.stp,.stl,.igs,.iges">
                         <div class="form-text">支持的格式：STEP (.step, .stp)、STL (.stl)、IGES (.igs, .iges)</div>
                     </div>
-                    <button type="submit" class="btn btn-primary">开始分析</button>
+                    <button type="submit" class="btn btn-primary">开始体检</button>
                 </form>
             </div>
         </div>
@@ -32,14 +32,16 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">DFM分析说明</h5>
-                <p>DFM(Design for Manufacturing)分析可以帮助您：</p>
+                <h5 class="card-title">快速体检说明</h5>
+                <p>快速模型体检可帮助您：</p>
                 <ul>
-                    <li>识别设计中的潜在制造问题</li>
-                    <li>提出优化建议以降低成本</li>
-                    <li>提高加工效率和产品质量</li>
+                    <li>检查模型是否封闭（水密）</li>
+                    <li>检测模型尺寸是否超出设备能力</li>
+                    <li>识别明显的几何问题</li>
                 </ul>
-                <p class="text-muted">注意：分析结果仅供参考，具体制造方案请咨询我们的工程师。</p>
+                <div class="alert alert-info">
+                    <p class="mb-0"><strong>注意：</strong>此为快速基础检查，更复杂的工艺性问题将在专家审核中一并检查。</p>
+                </div>
             </div>
         </div>
     </div>
@@ -47,6 +49,58 @@
 {% else %}
 <div class="row">
     <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">模型体检结果</h5>
+            </div>
+            <div class="card-body">
+                {% if recommendations %}
+                    {% for recommendation in recommendations %}
+                        {% if recommendation.type == 'error' %}
+                            <div class="alert alert-danger d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-times-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="alert-heading">{{ recommendation.title }}</h6>
+                                    <p class="mb-1">{{ recommendation.description }}</p>
+                                    <p class="mb-0"><strong>建议:</strong> {{ recommendation.suggestion }}</p>
+                                </div>
+                            </div>
+                        {% elif recommendation.type == 'warning' %}
+                            <div class="alert alert-warning d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="alert-heading">{{ recommendation.title }}</h6>
+                                    <p class="mb-1">{{ recommendation.description }}</p>
+                                    <p class="mb-0"><strong>建议:</strong> {{ recommendation.suggestion }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="alert-heading">{{ recommendation.title }}</h6>
+                                    <p class="mb-1">{{ recommendation.description }}</p>
+                                    <p class="mb-0"><strong>建议:</strong> {{ recommendation.suggestion }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>恭喜！</h5>
+                        <p class="mb-0">✅ 模型通过基础体检，可制造性良好。更复杂的工艺性问题将在专家审核中一并检查。</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if features %}
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">模型特征分析</h5>
@@ -67,22 +121,28 @@
                                 <td><strong>包围盒尺寸:</strong></td>
                                 <td>{{ features.bounding_box_length|floatformat:2 }} × {{ features.bounding_box_width|floatformat:2 }} × {{ features.bounding_box_height|floatformat:2 }} mm</td>
                             </tr>
+                            <!-- 只在检测到最小拐角半径时显示 -->
+                            {% if features.min_radius %}
                             <tr>
                                 <td><strong>最小拐角半径:</strong></td>
                                 <td>{{ features.min_radius|floatformat:2 }} mm</td>
                             </tr>
+                            {% endif %}
                         </table>
                     </div>
                     <div class="col-md-6">
                         <table class="table">
                             <tr>
-                                <td><strong>最小刀具直径:</strong></td>
-                                <td>{{ features.min_tool_diameter|floatformat:2 }} mm</td>
-                            </tr>
-                            <tr>
                                 <td><strong>最大径长比:</strong></td>
                                 <td>{{ features.max_aspect_ratio|floatformat:2 }}</td>
                             </tr>
+                            <!-- 只在检测到最小刀具直径时显示 -->
+                            {% if features.min_tool_diameter %}
+                            <tr>
+                                <td><strong>最小刀具直径:</strong></td>
+                                <td>{{ features.min_tool_diameter|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <td><strong>复杂度评分:</strong></td>
                                 <td>{{ features.complexity_score|floatformat:2 }}/10</td>
@@ -96,43 +156,38 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">DFM优化建议</h5>
+                <h5 class="mb-0">您是否关心以下问题？</h5>
             </div>
             <div class="card-body">
-                {% if recommendations %}
-                    {% for recommendation in recommendations %}
-                        <div class="alert alert-{% if recommendation.type == 'warning' %}warning{% else %}info{% endif %} d-flex align-items-center">
-                            <div class="flex-shrink-0 me-3">
-                                {% if recommendation.type == 'warning' %}
-                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                                {% else %}
-                                    <i class="fas fa-info-circle fa-2x"></i>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="alert-heading">{{ recommendation.title }}</h6>
-                                <p class="mb-1">{{ recommendation.description }}</p>
-                                <p class="mb-0"><strong>建议:</strong> {{ recommendation.suggestion }}</p>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="alert alert-success">
-                        <h6 class="alert-heading">恭喜！</h6>
-                        <p class="mb-0">未发现明显的制造问题，您的设计具有良好的可制造性。</p>
-                    </div>
-                {% endif %}
+                <ul>
+                    <li>壁厚是否足够坚固？</li>
+                    <li>此结构是否适合CNC加工？</li>
+                    <li>最小的孔能加工吗？</li>
+                    <li>锐角是否需要倒圆角处理？</li>
+                    <li>是否有难以加工的深孔或窄槽？</li>
+                </ul>
+                <button class="btn btn-success" onclick="requestExpertAnalysis()">
+                    <i class="fas fa-user-md me-2"></i>点击申请专家深度分析
+                </button>
+                <p class="text-muted mt-2">我们的制造专家将对您的模型进行深度可制造性审查，并提供详细的工艺建议。</p>
             </div>
         </div>
         
         <div class="d-flex justify-content-between">
-            <a href="{% url 'quotation:dfm_analysis' %}" class="btn btn-primary">重新分析</a>
+            <a href="{% url 'quotation:dfm_analysis' %}" class="btn btn-primary">重新体检</a>
             <a href="{% url 'quotation:quotation_request' %}" class="btn btn-secondary">获取报价</a>
         </div>
     </div>
 </div>
 {% endif %}
 {% endblock %}
+
+<script>
+function requestExpertAnalysis() {
+    alert("感谢您的申请！我们的制造专家将优先处理您的模型，并在1小时内提供详细的工艺分析报告。");
+}
+</script>

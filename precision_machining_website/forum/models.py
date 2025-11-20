@@ -43,3 +43,20 @@ class ForumPost(models.Model):
     
     def get_absolute_url(self):
         return reverse('forum:post_detail', kwargs={'pk': self.pk})
+
+
+class PostComment(models.Model):
+    """帖子评论模型"""
+    post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, verbose_name='所属帖子')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='评论作者')
+    content = models.TextField('评论内容')
+    created_at = models.DateTimeField('评论时间', default=timezone.now)
+    is_approved = models.BooleanField('已审核', default=True)
+    
+    class Meta:
+        verbose_name = '帖子评论'
+        verbose_name_plural = '帖子评论'
+        ordering = ['created_at']
+        
+    def __str__(self):
+        return f'{self.author.username} 对 {self.post.title} 的评论'

@@ -73,21 +73,13 @@
                                 <td>{{ analysis.bounding_box_length|floatformat:2 }} × {{ analysis.bounding_box_width|floatformat:2 }} × {{ analysis.bounding_box_height|floatformat:2 }} mm</td>
                             </tr>
                             <tr>
-                                <td><strong>最小拐角半径:</strong></td>
-                                <td>{{ analysis.min_radius|floatformat:2 }} mm</td>
+                                <td><strong>最大径长比:</strong></td>
+                                <td>{{ analysis.max_aspect_ratio|floatformat:2 }}</td>
                             </tr>
                         </table>
                     </div>
                     <div class="col-md-6">
                         <table class="table">
-                            <tr>
-                                <td><strong>最小刀具直径:</strong></td>
-                                <td>{{ analysis.min_tool_diameter|floatformat:2 }} mm</td>
-                            </tr>
-                            <tr>
-                                <td><strong>最大径长比:</strong></td>
-                                <td>{{ analysis.max_aspect_ratio|floatformat:2 }}</td>
-                            </tr>
                             <tr>
                                 <td><strong>复杂度评分:</strong></td>
                                 <td>{{ analysis.complexity_score|floatformat:2 }}/10</td>

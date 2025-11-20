@@ -30,6 +30,20 @@ except ImportError:
     STL_AVAILABLE = False
     print("提示: numpy-stl库未安装")
 
+# 尝试导入OpenCASCADE
+try:
+    from .opencascade_analyzer import analyze_with_opencascade, OCC_AVAILABLE
+except ImportError:
+    OCC_AVAILABLE = False
+    print("提示: OpenCASCADE分析器不可用")
+
+# 尝试导入FreeCAD
+try:
+    from .freecad_analyzer import analyze_with_freecad, FREECAD_AVAILABLE
+except ImportError:
+    FREECAD_AVAILABLE = False
+    print("提示: FreeCAD分析器不可用")
+
 class CADModelAnalyzer:
     """
     CAD模型分析器
@@ -91,6 +105,8 @@ class CADModelAnalyzer:
         print(f"CADQUERY_AVAILABLE: {CADQUERY_AVAILABLE}")
         print(f"TRIMESH_AVAILABLE: {TRIMESH_AVAILABLE}")
         print(f"STL_AVAILABLE: {STL_AVAILABLE}")
+        print(f"OCC_AVAILABLE: {OCC_AVAILABLE}")
+        print(f"FREECAD_AVAILABLE: {FREECAD_AVAILABLE}")
         print(f"Model type: {type(self.model)}")
         print(f"File extension: {self.file_extension}")
         
@@ -113,6 +129,44 @@ class CADModelAnalyzer:
             print(f"分析模型时出错: {e}")
             # 即使分析失败，也尝试提取基本特征
             features.update(self._analyze_generic())
+        
+        # 使用OpenCASCADE进行高级分析（如果可用）
+        if OCC_AVAILABLE and self.file_extension in ['.stl']:
+            try:
+                print("使用OpenCASCADE进行高级分析")
+                oc_features = analyze_with_opencascade(self.file_path)
+                # 合并OpenCASCADE分析结果
+                features.update({
+                    'oc_curved_surfaces': oc_features['complexity_features']['curved_surfaces'],
+                    'oc_sharp_edges': oc_features['complexity_features']['sharp_edges'],
+                    'oc_holes': oc_features['complexity_features']['holes'],
+                    'oc_undercuts': oc_features['complexity_features']['undercuts'],
+                    'oc_min_tolerance': oc_features['min_tolerance'],
+                    'oc_estimated_weight': oc_features['estimated_weight'],
+                    'oc_machining_difficulty': oc_features['machining_difficulty'],
+                    'min_radius': oc_features['min_radius'],  # 使用OpenCASCADE的结果覆盖默认值
+                    'min_tool_diameter': oc_features['min_tool_diameter'],  # 使用OpenCASCADE的结果
+                })
+            except Exception as e:
+                print(f"OpenCASCADE分析出错: {e}")
+        
+        # 使用FreeCAD进行分析（如果可用）
+        if FREECAD_AVAILABLE and self.file_extension in ['.step', '.stp', '.stl', '.iges', '.igs']:
+            try:
+                print("使用FreeCAD进行分析")
+                fc_features = analyze_with_freecad(self.file_path)
+                # 合并FreeCAD分析结果（优先级高于默认值，但低于OpenCASCADE）
+                if 'min_radius' not in features or features.get('min_radius') == 0.5:
+                    features['min_radius'] = fc_features['min_radius']
+                    features['min_tool_diameter'] = fc_features['min_tool_diameter']
+                
+                # 添加FreeCAD特定特征
+                features.update({
+                    'fc_fillet_count': fc_features['fillet_count'],
+                    'fc_sharp_edges': fc_features['sharp_edges'],
+                })
+            except Exception as e:
+                print(f"FreeCAD分析出错: {e}")
         
         # 添加制造相关特征
         try:
@@ -284,11 +338,15 @@ class CADModelAnalyzer:
         features = {}
         
         try:
-            # 估算最小拐角半径 (简化实现)
-            features['min_radius'] = 0.5  # 默认值
+            # 只有在还没有最小拐角半径时才添加占位值
+            if 'min_radius' not in base_features:
+                features['min_radius'] = None  # 无默认值
             
-            # 估算最小刀具直径
-            features['min_tool_diameter'] = features['min_radius'] * 2.0
+            # 只有在还没有最小刀具直径且有最小半径时才计算
+            if 'min_tool_diameter' not in base_features and base_features.get('min_radius') is not None:
+                features['min_tool_diameter'] = base_features['min_radius'] * 2.0
+            elif 'min_tool_diameter' not in base_features and features.get('min_radius') is not None:
+                features['min_tool_diameter'] = features['min_radius'] * 2.0
             
             # 估算加工难度 (1-5分)
             difficulty = 1.0
@@ -304,12 +362,13 @@ class CADModelAnalyzer:
             complexity = base_features.get('complexity_score', 1.0)
             difficulty += (complexity - 1.0) * 0.5
             
-            # 基于最小拐角半径的难度调整
-            min_radius = features['min_radius']
-            if min_radius < 0.2:
-                difficulty += 1.0
-            elif min_radius < 0.5:
-                difficulty += 0.5
+            # 基于最小拐角半径的难度调整（只有在有实际值时才调整）
+            min_radius = base_features.get('min_radius', features.get('min_radius'))
+            if min_radius is not None:
+                if min_radius < 0.2:
+                    difficulty += 1.0
+                elif min_radius < 0.5:
+                    difficulty += 0.5
             
             features['machining_difficulty'] = min(difficulty, 5.0)
             

@@ -33,6 +33,47 @@
     </div>
 </article>
 
+<!-- 评论区域 -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>评论</h5>
+    </div>
+    <div class="card-body">
+        <!-- 评论列表 -->
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ comment.author.username }}</strong>
+                        <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                    <div class="mt-2">
+                        {{ comment.content|linebreaks }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">暂无评论，快来抢沙发吧！</p>
+        {% endif %}
+        
+        <!-- 评论表单 -->
+        {% if user.is_authenticated %}
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ comment_form.content.id_for_label }}" class="form-label">发表评论</label>
+                    {{ comment_form.content }}
+                </div>
+                <button type="submit" class="btn btn-primary">提交评论</button>
+            </form>
+        {% else %}
+            <div class="alert alert-info mt-4">
+                请 <a href="{% url 'login' %}?next={{ request.path }}">登录</a> 后发表评论。
+            </div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="mb-3">
     {% if request.user == post.author %}
         <a href="{% url 'forum:post_edit' post.pk %}" class="btn btn-outline-primary btn-sm">编辑</a>

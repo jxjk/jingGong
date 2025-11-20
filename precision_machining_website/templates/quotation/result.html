@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">报价结果</h1>
+        <h1 class="mb-4">智能报价参考</h1>
     </div>
 </div>
 
@@ -13,18 +13,25 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5>参考报价</h5>
+                <h5>智能估价参考</h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-warning">
-                    <h5>重要提示</h5>
-                    <p>以下报价仅为参考价格，实际价格可能会因为具体技术要求、工艺难度等因素有所不同。</p>
-                    <p>如需精确报价，请联系我们的客服人员，我们将为您提供专业的咨询服务。</p>
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-lightbulb me-2"></i>初级制造顾问提示</h5>
+                    <p>以下报价为基于模型几何的初步估算，是您预算规划的可靠参考。</p>
+                    <p><strong>最终精准报价需经制造专家人工审核后确认</strong>，但此价格可作为您预算规划的可靠参考。</p>
                 </div>
                 
                 <div class="pricing-result text-center py-4">
-                    <h3 class="display-4 text-primary">¥{{ price_min|floatformat:2 }} - ¥{{ price_max|floatformat:2 }}</h3>
-                    <p class="lead">参考价格区间</p>
+                    <h3 class="display-4 text-primary">¥{{ price_min|floatformat:0 }} 起</h3>
+                    <p class="lead">智能估价参考</p>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button class="btn btn-success btn-lg" onclick="requestAccurateQuote()">
+                        <i class="fas fa-paper-plane me-2"></i>申请精准报价
+                    </button>
+                    <p class="text-muted mt-2">我们的制造专家将在1小时内对您的模型进行深度可制造性审查，并提供最终的精准报价和确认交期。</p>
                 </div>
                 
                 {% if factor_details %}
@@ -164,19 +171,25 @@
                             </tr>
                             {% endif %}
                             
+                            <!-- 注释掉最小拐角半径的显示 -->
+                            <!--
                             {% if quotation.min_radius %}
                             <tr>
                                 <td><strong>最小拐角半径</strong></td>
                                 <td>{{ quotation.min_radius|floatformat:2 }} mm</td>
                             </tr>
                             {% endif %}
+                            -->
                             
+                            <!-- 注释掉最小刀具直径的显示 -->
+                            <!--
                             {% if quotation.min_tool_diameter %}
                             <tr>
                                 <td><strong>最小刀具直径</strong></td>
                                 <td>{{ quotation.min_tool_diameter|floatformat:2 }} mm</td>
                             </tr>
                             {% endif %}
+                            -->
                             
                             {% if quotation.machining_difficulty %}
                             <tr>
@@ -197,7 +210,7 @@
             <div class="card-body">
                 <h5 class="card-title">获取精确报价</h5>
                 <p class="card-text">
-                    想要获得更精确的报价？请联系我们专业的技术团队。
+                    想要获得更精确的报价？请联系我们专业的技术团队进行深度审核。
                 </p>
                 <ul class="list-unstyled">
                     <li><strong>电话：</strong> 138-6278-3302</li>
@@ -233,6 +246,10 @@
 <script>
 function contactUs() {
     alert("请联系我们的客服：138-6278-3302 或发送邮件至 jxjk@163.com");
+}
+
+function requestAccurateQuote() {
+    alert("感谢您的信任！我们的制造专家将在1小时内对您的模型进行深度可制造性审查，并向您提供最终的精准报价和确认交期。");
 }
 </script>
 {% endblock %}

@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
-from .models import ForumCategory, ForumPost
-from .forms import ForumPostForm
+from .models import ForumCategory, ForumPost, PostComment
+from .forms import ForumPostForm, PostCommentForm
 
 
 def category_list(request):
@@ -36,7 +36,32 @@ def post_detail(request, pk):
     # 增加浏览量
     post.view_count += 1
     post.save(update_fields=['view_count'])
-    return render(request, 'forum/post_detail.html', {'post': post})
+    
+    # 获取该帖子的所有评论
+    comments = post.postcomment_set.filter(is_approved=True)
+    
+    # 处理评论表单
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            comment_form = PostCommentForm(request.POST)
+            if comment_form.is_valid():
+                comment = comment_form.save(commit=False)
+                comment.post = post
+                comment.author = request.user
+                comment.save()
+                messages.success(request, '评论已成功发布！')
+                return redirect('forum:post_detail', pk=post.pk)
+        else:
+            messages.error(request, '请先登录后再发表评论。')
+            return redirect('login')
+    else:
+        comment_form = PostCommentForm()
+    
+    return render(request, 'forum/post_detail.html', {
+        'post': post,
+        'comments': comments,
+        'comment_form': comment_form
+    })
 
 
 @login_required

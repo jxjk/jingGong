@@ -136,6 +136,7 @@ def quotation_result(request, quotation_id):
         })
     
     # 最小拐角半径因子（越小越难加工）
+    # 只有在实际检测到最小半径时才应用此因子
     if quotation.min_radius and quotation.min_radius < 2.0:
         radius_factor = 1 + (2.0 - quotation.min_radius) / 2.0
         model_factor *= radius_factor
@@ -146,6 +147,7 @@ def quotation_result(request, quotation_id):
         })
     
     # 最小刀具直径因子（越小越难加工）
+    # 只有在实际检测到最小刀具直径时才应用此因子
     if quotation.min_tool_diameter and quotation.min_tool_diameter < 3.0:
         tool_factor = 1 + (3.0 - quotation.min_tool_diameter) / 3.0
         model_factor *= tool_factor
@@ -165,17 +167,29 @@ def quotation_result(request, quotation_id):
             'description': f'最大径长比: {quotation.max_aspect_ratio:.2f}'
         })
     
+    # 材料去除率因子（基于模型特征估算）
+    material_removal_factor = calculate_material_removal_factor(quotation)
+    if material_removal_factor != 1.0:
+        model_factor *= material_removal_factor
+        factor_details['factors'].append({
+            'name': '材料去除率因子',
+            'value': material_removal_factor,
+            'description': '基于模型特征估算的材料去除效率'
+        })
+    
     # 应用管理员设置的调控因子
     adjustment_factors = QuotationAdjustmentFactor.objects.filter(is_active=True)
     adjustment_factor_value = 1.0
     if adjustment_factors.exists():
         for factor in adjustment_factors:
             adjustment_factor_value *= factor.value
-            factor_details['factors'].append({
-                'name': f'调控因子[{factor.name}]',
-                'value': factor.value,
-                'description': factor.description or f'调控因子: {factor.name}'
-            })
+            # 不在页面上显示市场调节因子和利润率因子
+            if factor.name not in ['市场调节因子', '利润率']:
+                factor_details['factors'].append({
+                    'name': f'调控因子[{factor.name}]',
+                    'value': factor.value,
+                    'description': factor.description or f'调控因子: {factor.name}'
+                })
     
     # 计算最终价格
     estimated_price = base_price * material_multiplier * quantity_factor * model_factor * adjustment_factor_value
@@ -198,6 +212,61 @@ def quotation_result(request, quotation_id):
     }
     
     return render(request, 'quotation/result.html', context)
+
+
+def calculate_material_removal_factor(quotation):
+    """
+    计算材料去除率因子
+    大的型腔可以使用较大直径的刀具去除率会高一点，
+    小的沟槽只能使用小直径的刀具去除率小一点。
+    整体需要去除的材料可以使用毛坯体积减去模型体积。
+    """
+    factor = 1.0
+    
+    # 检查必要的字段是否存在
+    if not all([quotation.volume, quotation.bounding_box_length, 
+                quotation.bounding_box_width, quotation.bounding_box_height]):
+        return factor
+    
+    # 估算毛坯体积（包围盒体积）
+    blank_volume = (quotation.bounding_box_length * 
+                    quotation.bounding_box_width * 
+                    quotation.bounding_box_height) / 1000  # 转换为cm³
+    
+    # 计算需要去除的材料体积
+    material_to_remove = blank_volume - quotation.volume
+    
+    # 如果需要去除的材料很少或为负数，直接返回默认因子
+    if material_to_remove <= 0:
+        return factor
+    
+    # 根据需要去除的材料量调整因子
+    # 使用对数函数使因子变化更平滑
+    removal_factor = 1.0 + np.log10(max(1, material_to_remove)) / 5.0
+    
+    # 根据模型的特征尺寸调整因子
+    # 大型特征（如大的型腔）有利于使用大刀具，提高去除率
+    max_dimension = max(quotation.bounding_box_length, 
+                       quotation.bounding_box_width, 
+                       quotation.bounding_box_height)
+    
+    # 小型特征（如窄槽）限制了刀具尺寸，降低去除率
+    min_dimension = min(quotation.bounding_box_length, 
+                       quotation.bounding_box_width, 
+                       quotation.bounding_box_height)
+    
+    # 大尺寸特征提高去除率
+    if max_dimension > 50:  # 大于50mm的大尺寸特征
+        removal_factor *= 0.9  # 提高效率，降低因子值
+    
+    # 小尺寸特征降低去除率
+    if min_dimension < 5:  # 小于5mm的小尺寸特征
+        removal_factor *= 1.2  # 降低效率，提高因子值
+    
+    # 确保因子在合理范围内
+    factor = max(0.5, min(2.0, removal_factor))
+    
+    return factor
 
 def dfm_analysis(request):
     """DFM分析工具"""
@@ -242,7 +311,7 @@ def _generate_dfm_recommendations(features):
     """根据模型特征生成DFM建议"""
     recommendations = []
     
-    # 检查最小拐角半径
+    # 检查最小拐角半径（只有在实际检测到时才检查）
     min_radius = features.get('min_radius')
     if min_radius is not None:
         if min_radius < 0.5:
@@ -260,7 +329,7 @@ def _generate_dfm_recommendations(features):
                 'suggestion': '考虑增加拐角半径至1mm以上，以降低加工难度。'
             })
     
-    # 检查最小刀具直径
+    # 检查最小刀具直径（只有在实际检测到时才检查）
     min_tool_diameter = features.get('min_tool_diameter')
     if min_tool_diameter is not None:
         if min_tool_diameter < 1.0:
@@ -280,48 +349,20 @@ def _generate_dfm_recommendations(features):
     
     # 检查最大径长比
     max_aspect_ratio = features.get('max_aspect_ratio')
-    if max_aspect_ratio is not None and max_aspect_ratio > 5.0:
-        recommendations.append({
-            'type': 'warning',
-            'title': '高径长比特征',
-            'description': f'检测到特征的径长比达到 {max_aspect_ratio:.2f}，属于高径长比结构。',
-            'suggestion': '高径长比特征容易导致振动和变形，建议增加支撑结构或优化几何形状。'
-        })
-    
-    # 检查复杂度评分
-    complexity_score = features.get('complexity_score')
-    if complexity_score is not None:
-        if complexity_score > 8.0:
+    if max_aspect_ratio is not None:
+        if max_aspect_ratio > 10:
             recommendations.append({
                 'type': 'warning',
-                'title': '高复杂度设计',
-                'description': f'模型复杂度评分为 {complexity_score:.2f}（满分10分），属于高复杂度设计。',
-                'suggestion': '高复杂度会增加加工难度和成本，考虑是否可以简化设计。'
+                'title': '极长径比',
+                'description': f'检测到最大径长比为 {max_aspect_ratio:.2f}，这可能会导致加工困难。',
+                'suggestion': '建议优化设计，避免过长的径长比。'
             })
-        elif complexity_score > 5.0:
+        elif max_aspect_ratio > 5:
             recommendations.append({
                 'type': 'info',
-                'title': '中等复杂度设计',
-                'description': f'模型复杂度评分为 {complexity_score:.2f}（满分10分）。',
-                'suggestion': '中等复杂度设计，注意加工过程中的质量控制。'
-            })
-    
-    # 检查加工难度评分
-    machining_difficulty = features.get('machining_difficulty')
-    if machining_difficulty is not None:
-        if machining_difficulty > 8.0:
-            recommendations.append({
-                'type': 'warning',
-                'title': '高加工难度',
-                'description': f'加工难度评分为 {machining_difficulty:.2f}（满分10分），属于高难度加工。',
-                'suggestion': '高难度加工需要更专业的设备和工艺，可能导致成本显著增加。'
-            })
-        elif machining_difficulty > 5.0:
-            recommendations.append({
-                'type': 'info',
-                'title': '中等加工难度',
-                'description': f'加工难度评分为 {machining_difficulty:.2f}（满分10分）。',
-                'suggestion': '中等加工难度，需要经验丰富的操作人员。'
+                'title': '较长径比',
+                'description': f'检测到最大径长比为 {max_aspect_ratio:.2f}，属于较长径比。',
+                'suggestion': '考虑是否可以调整设计，以降低加工难度。'
             })
     
     return recommendations

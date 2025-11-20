@@ -57,14 +57,12 @@ class QuotationRequest(models.Model):
     machining_difficulty = models.FloatField(null=True, blank=True, verbose_name='加工难度评分')
     
     # OpenCASCADE分析相关字段
-    surface_area = models.FloatField('表面积', blank=True, null=True)
-    volume = models.FloatField('体积', blank=True, null=True)
-    curved_surfaces = models.IntegerField('曲面数量', blank=True, null=True)
-    sharp_edges = models.IntegerField('锐边数量', blank=True, null=True)
-    holes = models.IntegerField('孔洞数量', blank=True, null=True)
-    undercuts = models.IntegerField('倒勾特征数量', blank=True, null=True)
-    min_tolerance = models.FloatField('最小公差要求', blank=True, null=True)
-    estimated_weight = models.FloatField('估算重量', blank=True, null=True)
+    oc_curved_surfaces = models.IntegerField('曲面数量', blank=True, null=True)
+    oc_sharp_edges = models.IntegerField('锐边数量', blank=True, null=True)
+    oc_holes = models.IntegerField('孔洞数量', blank=True, null=True)
+    oc_undercuts = models.IntegerField('倒勾特征数量', blank=True, null=True)
+    oc_min_tolerance = models.FloatField('最小公差要求', blank=True, null=True)
+    oc_estimated_weight = models.FloatField('估算重量', blank=True, null=True)
     oc_machining_difficulty = models.CharField(
         'OpenCASCADE加工难度', 
         max_length=20, 
@@ -77,6 +75,29 @@ class QuotationRequest(models.Model):
         blank=True,
         null=True
     )
+    
+    # CadQuery分析相关字段
+    cq_cnc_difficulty_level = models.CharField(
+        'CNC难度等级',
+        max_length=20,
+        choices=[
+            ('EASY', '容易'),
+            ('MEDIUM', '中等'),
+            ('HARD', '困难')
+        ],
+        blank=True,
+        null=True
+    )
+    cq_cnc_difficulty_score = models.IntegerField('CNC难度评分', blank=True, null=True)
+    cq_estimated_cost = models.FloatField('估算成本', blank=True, null=True)
+    cq_fillets = models.IntegerField('圆角数量', blank=True, null=True)
+    cq_finishing_time = models.FloatField('精加工时间(分钟)', blank=True, null=True)
+    cq_holes = models.IntegerField('孔数量', blank=True, null=True)
+    cq_recommended_process = models.CharField('推荐工艺', max_length=50, blank=True, null=True)
+    cq_roughing_time = models.FloatField('粗加工时间(分钟)', blank=True, null=True)
+    cq_thin_walls = models.BooleanField('薄壁结构', default=False)
+    cq_utilization_percent = models.FloatField('材料利用率(%)', blank=True, null=True)
+    cq_waste_volume = models.FloatField('材料浪费量', blank=True, null=True)
     
     # 时间戳
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
@@ -139,6 +160,29 @@ class DFMAnalysis(models.Model):
     complexity_score = models.FloatField(null=True, blank=True, verbose_name='复杂度评分')
     min_tool_diameter = models.FloatField(null=True, blank=True, verbose_name='最小刀具直径 (mm)')
     machining_difficulty = models.FloatField(null=True, blank=True, verbose_name='加工难度评分')
+    
+    # CadQuery分析相关字段
+    cq_cnc_difficulty_level = models.CharField(
+        'CNC难度等级',
+        max_length=20,
+        choices=[
+            ('EASY', '容易'),
+            ('MEDIUM', '中等'),
+            ('HARD', '困难')
+        ],
+        blank=True,
+        null=True
+    )
+    cq_cnc_difficulty_score = models.IntegerField('CNC难度评分', blank=True, null=True)
+    cq_estimated_cost = models.FloatField('估算成本', blank=True, null=True)
+    cq_fillets = models.IntegerField('圆角数量', blank=True, null=True)
+    cq_finishing_time = models.FloatField('精加工时间(分钟)', blank=True, null=True)
+    cq_holes = models.IntegerField('孔数量', blank=True, null=True)
+    cq_recommended_process = models.CharField('推荐工艺', max_length=50, blank=True, null=True)
+    cq_roughing_time = models.FloatField('粗加工时间(分钟)', blank=True, null=True)
+    cq_thin_walls = models.BooleanField('薄壁结构', default=False)
+    cq_utilization_percent = models.FloatField('材料利用率(%)', blank=True, null=True)
+    cq_waste_volume = models.FloatField('材料浪费量', blank=True, null=True)
     
     # DFM建议
     recommendations = models.TextField(blank=True, verbose_name='优化建议')
