@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <h1 class="display-4 mb-4">欢迎来到精工智造平台</h1>
+            <p class="lead mb-5">专业的精密加工服务平台，为您提供高效的在线报价和制造服务。</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">作品展示</h5>
+                    <p class="card-text">浏览我们的精密加工作品案例，了解我们的工艺水平和加工能力。</p>
+                    <a href="{% url 'gallery:work_list' %}" class="btn btn-primary">查看作品</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">自助报价</h5>
+                    <p class="card-text">上传您的3D模型，获取快速、准确的加工报价。</p>
+                    <a href="{% url 'quotation:quotation_home' %}" class="btn btn-primary">开始报价</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">订单管理</h5>
+                    <p class="card-text">跟踪您的订单状态，查看生产进度和实时监控信息。</p>
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-primary">管理订单</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h2>为什么选择精工智造？</h2>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="text-center">
+                <h5>快速报价</h5>
+                <p>上传3D模型后，系统立即分析并给出报价，无需等待人工审核。</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="text-center">
+                <h5>透明化生产</h5>
+                <p>实时跟踪订单状态，查看生产进度，部分环节可观看车间监控。</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="text-center">
+                <h5>专业技术支持</h5>
+                <p>拥有经验丰富的工程师团队，提供专业的技术咨询和支持。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

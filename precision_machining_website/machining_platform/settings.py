@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'gallery',
     'quotation',
     'forum',  # 论坛应用
+    'orders',  # 添加订单模块
 ]
 
 MIDDLEWARE = [
@@ -150,6 +151,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 登录后重定向URL
+# 登录相关URL设置
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

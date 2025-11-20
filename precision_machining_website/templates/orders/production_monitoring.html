@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}生产监控 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">生产监控</h1>
+            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-secondary mb-3">返回订单详情</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">订单 {{ order.order_number }} - {{ order.product_name }} 生产实时监控</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>监控说明</h5>
+                        <p>为了保护隐私，展示的监控画面已经过脱敏处理，仅用于展示生产进度。</p>
+                    </div>
+
+                    {% if progress_items %}
+                        <div class="row">
+                            {% for progress in progress_items %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">{{ progress.stage }}</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>{{ progress.description }}</p>
+                                        {% if progress.monitoring_image %}
+                                            <img src="{{ progress.monitoring_image.url }}" alt="生产监控图片" class="img-fluid rounded mb-3">
+                                        {% endif %}
+                                        {% if progress.monitoring_description %}
+                                            <div class="alert alert-light">
+                                                <strong>实时状态:</strong> {{ progress.monitoring_description }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <h3 class="text-muted">暂无实时监控信息</h3>
+                            <p class="text-muted">当前没有正在进行的生产阶段。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">生产进度总览</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress-steps">
+                        {% for status, status_display in order.ORDER_STATUS_CHOICES %}
+                            {% if status != 'pending_review' and status != 'pending_payment' %}
+                                <div class="step {% if order.status == status %}active{% elif order.get_status_display > status_display %}completed{% endif %}">
+                                    <div class="step-icon">
+                                        {% if order.status == status %}
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        {% elif order.get_status_display > status_display %}
+                                            <i class="fas fa-check"></i>
+                                        {% else %}
+                                            <i class="fas fa-clock"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="step-label">{{ status_display }}</div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #e9ecef;
+    z-index: 1;
+}
+
+.step {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: #6c757d;
+}
+
+.step.active .step-icon {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.step.completed .step-icon {
+    background-color: #198754;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.step.active .step-label {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.step.completed .step-label {
+    color: #198754;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

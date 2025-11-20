@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">订单详情</h1>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-secondary mb-3">返回订单列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">订单信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>订单号:</strong></td>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>产品名称:</strong></td>
+                                    <td>{{ order.product_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>产品描述:</strong></td>
+                                    <td>{{ order.product_description|linebreaks }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>数量:</strong></td>
+                                    <td>{{ order.quantity }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>单价:</strong></td>
+                                    <td>¥{{ order.unit_price }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>总价:</strong></td>
+                                    <td>¥{{ order.total_price }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>当前状态:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                            {{ order.get_status_display_chinese }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>承诺交期:</strong></td>
+                                    <td>{{ order.promised_delivery_date|date:"Y-m-d H:i"|default:"待确定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>创建时间:</strong></td>
+                                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>更新时间:</strong></td>
+                                    <td>{{ order.updated_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">生产进度</h5>
+                </div>
+                <div class="card-body">
+                    {% if production_progress %}
+                        <div class="timeline">
+                            {% for progress in production_progress %}
+                            <div class="timeline-item">
+                                <div class="timeline-badge {% if progress.is_completed %}bg-success{% else %}bg-primary{% endif %}"></div>
+                                <div class="timeline-panel">
+                                    <div class="timeline-heading">
+                                        <h6 class="timeline-title">{{ progress.stage }}</h6>
+                                        <p class="text-muted">
+                                            <small>
+                                                {% if progress.started_at %}
+                                                    开始于 {{ progress.started_at|date:"Y-m-d H:i" }}
+                                                {% endif %}
+                                                {% if progress.is_completed %}
+                                                    完成于 {{ progress.completed_at|date:"Y-m-d H:i" }}
+                                                {% endif %}
+                                            </small>
+                                        </p>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>{{ progress.description }}</p>
+                                        {% if progress.monitoring_description %}
+                                            <div class="alert alert-info">
+                                                <strong>车间监控信息:</strong> {{ progress.monitoring_description }}
+                                            </div>
+                                        {% endif %}
+                                        {% if progress.monitoring_image %}
+                                            <img src="{{ progress.monitoring_image.url }}" alt="生产监控图片" class="img-fluid rounded">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">暂无生产进度信息</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">状态历史</h5>
+                </div>
+                <div class="card-body">
+                    {% if status_history %}
+                        <div class="list-group">
+                            {% for history in status_history %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ history.get_status_display }}</h6>
+                                    <small>{{ history.timestamp|date:"Y-m-d H:i" }}</small>
+                                </div>
+                                {% if history.operator %}
+                                    <small class="text-muted">操作人: {{ history.operator }}</small>
+                                {% endif %}
+                                {% if history.notes %}
+                                    <p class="mb-1">{{ history.notes }}</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">暂无状态历史记录</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">客户信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>姓名:</strong> {{ order.customer_name }}</p>
+                    <p><strong>邮箱:</strong> {{ order.customer_email }}</p>
+                    <p><strong>电话:</strong> {{ order.customer_phone }}</p>
+                    {% if order.customer_company %}
+                        <p><strong>公司:</strong> {{ order.customer_company }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">收货信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>收货人:</strong> {{ order.shipping_contact }}</p>
+                    <p><strong>电话:</strong> {{ order.shipping_phone }}</p>
+                    <p><strong>地址:</strong> {{ order.shipping_address|linebreaks }}</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">操作</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.status == 'processing' %}
+                        <a href="{% url 'orders:production_monitoring' order.id %}" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-video me-2"></i>查看生产监控
+                        </a>
+                    {% endif %}
+                    <button class="btn btn-secondary w-100" disabled>联系客服</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

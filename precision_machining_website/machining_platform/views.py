@@ -4,6 +4,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
 
+def home(request):
+    """首页视图"""
+    return render(request, 'home.html')
+
+
 def register(request):
     """用户注册视图"""
     if request.method == 'POST':

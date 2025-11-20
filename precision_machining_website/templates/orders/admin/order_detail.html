@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">订单详情</h1>
+            <a href="{% url 'orders:admin_order_list' %}" class="btn btn-secondary mb-3">返回订单列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">订单信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>订单号:</strong></td>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>产品名称:</strong></td>
+                                    <td>{{ order.product_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>产品描述:</strong></td>
+                                    <td>{{ order.product_description|linebreaks }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>数量:</strong></td>
+                                    <td>{{ order.quantity }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>单价:</strong></td>
+                                    <td>¥{{ order.unit_price }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>总价:</strong></td>
+                                    <td>¥{{ order.total_price }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>当前状态:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                            {{ order.get_status_display_chinese }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>承诺交期:</strong></td>
+                                    <td>{{ order.promised_delivery_date|date:"Y-m-d H:i"|default:"待确定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>创建时间:</strong></td>
+                                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>更新时间:</strong></td>
+                                    <td>{{ order.updated_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">生产进度</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProgressModal">
+                        <i class="fas fa-plus me-1"></i>添加进度
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if production_progress %}
+                        <div class="list-group">
+                            {% for progress in production_progress %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6>{{ progress.stage }}</h6>
+                                        <p class="mb-1">{{ progress.description }}</p>
+                                        {% if progress.monitoring_description %}
+                                            <div class="alert alert-info mb-1 p-2">
+                                                <small><strong>监控信息:</strong> {{ progress.monitoring_description }}</small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" 
+                                                   id="progressSwitch{{ progress.id }}" 
+                                                   {% if progress.is_completed %}checked{% endif %}
+                                                   onchange="updateProgressStatus({{ progress.id }}, this.checked)">
+                                            <label class="form-check-label" for="progressSwitch{{ progress.id }}">
+                                                {% if progress.is_completed %}已完成{% else %}进行中{% endif %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">
+                                            {% if progress.started_at %}
+                                                开始: {{ progress.started_at|date:"Y-m-d H:i" }}
+                                            {% endif %}
+                                            {% if progress.completed_at %}
+                                                完成: {{ progress.completed_at|date:"Y-m-d H:i" }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">暂无生产进度信息</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">状态历史</h5>
+                </div>
+                <div class="card-body">
+                    {% if status_history %}
+                        <div class="list-group">
+                            {% for history in status_history %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ history.get_status_display }}</h6>
+                                    <small>{{ history.timestamp|date:"Y-m-d H:i" }}</small>
+                                </div>
+                                {% if history.operator %}
+                                    <small class="text-muted">操作人: {{ history.operator }}</small>
+                                {% endif %}
+                                {% if history.notes %}
+                                    <p class="mb-1">{{ history.notes }}</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">暂无状态历史记录</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">客户信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>姓名:</strong> {{ order.customer_name }}</p>
+                    <p><strong>邮箱:</strong> {{ order.customer_email }}</p>
+                    <p><strong>电话:</strong> {{ order.customer_phone }}</p>
+                    {% if order.customer_company %}
+                        <p><strong>公司:</strong> {{ order.customer_company }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">收货信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>收货人:</strong> {{ order.shipping_contact }}</p>
+                    <p><strong>电话:</strong> {{ order.shipping_phone }}</p>
+                    <p><strong>地址:</strong> {{ order.shipping_address|linebreaks }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">更新订单状态</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'orders:admin_update_order_status' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">新状态</label>
+                            <select class="form-select" id="status" name="status">
+                                {% for status, display in order.ORDER_STATUS_CHOICES %}
+                                    <option value="{{ status }}" {% if order.status == status %}selected{% endif %}>{{ display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">备注</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">更新状态</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">发送通知</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'orders:admin_send_notification' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">标题</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">内容</label>
+                            <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">发送通知</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加进度模态框 -->
+<div class="modal fade" id="addProgressModal" tabindex="-1" aria-labelledby="addProgressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'orders:admin_add_production_progress' order.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProgressModalLabel">添加生产进度</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="stage" class="form-label">生产阶段</label>
+                        <input type="text" class="form-control" id="stage" name="stage" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateProgressStatus(progressId, isCompleted) {
+    // 这里应该发送一个 AJAX 请求来更新进度状态
+    // 为了简化示例，我们使用一个简单的表单提交
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `{% url 'orders:admin_update_production_progress' 0 %}`.replace('0', progressId);
+    
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    const completedInput = document.createElement('input');
+    completedInput.type = 'hidden';
+    completedInput.name = 'completed';
+    completedInput.value = isCompleted ? 'on' : '';
+    
+    form.appendChild(csrfToken);
+    form.appendChild(completedInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

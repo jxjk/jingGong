@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}订单管理 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">订单管理</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">订单列表</h5>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <form class="row g-2" method="get">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control form-control-sm" name="search" placeholder="搜索订单号/客户/产品" value="{{ search_query }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" name="status">
+                                        <option value="">全部状态</option>
+                                        {% for status, display in status_choices %}
+                                            <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ display }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-primary btn-sm">搜索</button>
+                                    <a href="{% url 'orders:admin_order_list' %}" class="btn btn-secondary btn-sm">重置</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>订单号</th>
+                                    <th>客户</th>
+                                    <th>产品名称</th>
+                                    <th>数量</th>
+                                    <th>总价</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in page_obj %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+                                    <td>{{ order.order_number }}</td>
+                                    <td>{{ order.customer_name }}<br><small class="text-muted">{{ order.customer_email }}</small></td>
+                                    <td>{{ order.product_name }}</td>
+                                    <td>{{ order.quantity }}</td>
+                                    <td>¥{{ order.total_price }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                            {{ order.get_status_display_chinese }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'orders:admin_order_detail' order.id %}" class="btn btn-sm btn-primary">查看详情</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center">暂无订单记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="订单分页">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">&laquo; 首页</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">上一页</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">下一页</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">末页 &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

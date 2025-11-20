@@ -41,7 +41,7 @@
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'gallery:work_list' %}">精工智造</a>
+            <a class="navbar-brand" href="{% url 'home' %}">精工智造</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -52,6 +52,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'quotation:quotation_home' %}">自助报价</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'orders:order_list' %}">订单管理</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'forum:category_list' %}">技术论坛</a>
