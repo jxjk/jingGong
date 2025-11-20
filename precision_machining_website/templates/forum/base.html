@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{% block forum_title %}{% endblock %} - 论坛{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">首页</a></li>
+            <li class="breadcrumb-item active" aria-current="page">论坛</li>
+        </ol>
+    </nav>
+
+    {% block forum_content %}{% endblock %}
+</div>
+{% endblock %}

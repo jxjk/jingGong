@@ -56,6 +56,28 @@ class QuotationRequest(models.Model):
     min_tool_diameter = models.FloatField(null=True, blank=True, verbose_name='最小刀具直径 (mm)')
     machining_difficulty = models.FloatField(null=True, blank=True, verbose_name='加工难度评分')
     
+    # OpenCASCADE分析相关字段
+    surface_area = models.FloatField('表面积', blank=True, null=True)
+    volume = models.FloatField('体积', blank=True, null=True)
+    curved_surfaces = models.IntegerField('曲面数量', blank=True, null=True)
+    sharp_edges = models.IntegerField('锐边数量', blank=True, null=True)
+    holes = models.IntegerField('孔洞数量', blank=True, null=True)
+    undercuts = models.IntegerField('倒勾特征数量', blank=True, null=True)
+    min_tolerance = models.FloatField('最小公差要求', blank=True, null=True)
+    estimated_weight = models.FloatField('估算重量', blank=True, null=True)
+    oc_machining_difficulty = models.CharField(
+        'OpenCASCADE加工难度', 
+        max_length=20, 
+        choices=[
+            ('EASY', '容易'),
+            ('MEDIUM', '中等'),
+            ('HARD', '困难'),
+            ('VERY_HARD', '非常困难')
+        ],
+        blank=True,
+        null=True
+    )
+    
     # 时间戳
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
     is_processed = models.BooleanField(default=False, verbose_name='已处理')
@@ -67,6 +89,15 @@ class QuotationRequest(models.Model):
         
     def __str__(self):
         return f"{self.name}的报价请求 - {self.created_at.strftime('%Y-%m-%d')}"
+
+    def get_machining_difficulty_display(self):
+        difficulty_mapping = {
+            'EASY': '容易',
+            'MEDIUM': '中等',
+            'HARD': '困难',
+            'VERY_HARD': '非常困难'
+        }
+        return difficulty_mapping.get(self.oc_machining_difficulty, '未评估')
 
 
 class QuotationAdjustmentFactor(models.Model):

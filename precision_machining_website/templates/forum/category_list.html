@@ -1,0 +1,32 @@
+{% extends "forum/base.html" %}
+
+{% block forum_title %}论坛版块{% endblock %}
+
+{% block forum_content %}
+<h1>论坛</h1>
+<p class="lead">欢迎来到精工创客论坛，这里是交流精密加工技术的平台。</p>
+
+<div class="row">
+    {% for category in categories %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'forum:post_list' category.id %}" class="text-decoration-none">{{ category.name }}</a>
+                </h5>
+                <p class="card-text">{{ category.description }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ category.post_count }} 个帖子</small>
+                    <a href="{% url 'forum:post_list' category.id %}" class="btn btn-primary btn-sm">进入版块</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">暂无论坛版块，请在后台添加。</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

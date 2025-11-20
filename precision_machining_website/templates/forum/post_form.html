@@ -1,0 +1,39 @@
+{% extends "forum/base.html" %}
+
+{% block forum_title %}{{ title }}{% endblock %}
+
+{% block forum_content %}
+<h1>{{ title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">标题</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div class="text-danger">{{ form.title.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ form.category.id_for_label }}" class="form-label">版块</label>
+        {{ form.category }}
+        {% if form.category.errors %}
+            <div class="text-danger">{{ form.category.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ form.content.id_for_label }}" class="form-label">内容</label>
+        {{ form.content }}
+        {% if form.content.errors %}
+            <div class="text-danger">{{ form.content.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <button type="submit" class="btn btn-primary">提交</button>
+    <a href="javascript:history.back()" class="btn btn-secondary">取消</a>
+</form>
+
+{% endblock %}

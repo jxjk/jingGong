@@ -1,0 +1,54 @@
+{% extends "forum/base.html" %}
+
+{% block forum_title %}{{ category.name }}{% endblock %}
+
+{% block forum_content %}
+<h1>{{ category.name }}</h1>
+{% if category.description %}<p class="lead">{{ category.description }}</p>{% endif %}
+
+<div class="mb-3">
+    <a href="{% url 'forum:post_create' %}" class="btn btn-primary">发布新帖子</a>
+</div>
+
+<div class="list-group mb-4">
+    {% for post in page_obj %}
+    <a href="{% url 'forum:post_detail' post.pk %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <small class="text-muted">{{ post.created_at|date:"Y-m-d H:i" }}</small>
+        </div>
+        <p class="mb-1">作者：{{ post.author.username }} | 浏览量：{{ post.view_count }}</p>
+    </a>
+    {% empty %}
+    <div class="list-group-item">该版块暂无帖子。</div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="帖子分页">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一页</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">上一页</span></li>
+        {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">下一页</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">下一页</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

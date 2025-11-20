@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}搜索 "{{ query }}" - 论坛 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- 左侧边栏 -->
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">论坛分类</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{% url 'forum:post_list' %}" class="text-decoration-none">
+                            全部帖子
+                        </a>
+                    </li>
+                    {% for category in categories %}
+                    <li class="list-group-item">
+                        <a href="{% url 'forum:post_list_by_category' category.id %}" class="text-decoration-none">
+                            {{ category.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                {% if query %}
+                    搜索结果："{{ query }}"
+                {% else %}
+                    搜索
+                {% endif %}
+            </h2>
+            <a href="{% url 'forum:post_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 返回论坛
+            </a>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" action="{% url 'forum:post_search' %}" class="row g-2">
+                    <div class="col-md-8">
+                        <input type="text" name="q" class="form-control" placeholder="搜索帖子..." value="{{ query }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 搜索结果 -->
+        {% if query %}
+            {% if posts %}
+                <div class="mb-3">
+                    <p class="text-muted">找到 {{ posts.count }} 个相关帖子</p>
+                </div>
+                
+                {% for post in posts %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">
+                                    <a href="{% url 'forum:post_detail' post.pk %}" class="text-decoration-none">
+                                        {{ post.title }}
+                                    </a>
+                                    {% if post.is_featured %}
+                                    <span class="badge bg-warning ms-2">推荐</span>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text text-muted mb-2">
+                                    {{ post.content|striptags|truncatechars:150 }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> {{ post.author.username }}
+                                        <i class="fas fa-clock ms-2"></i> {{ post.created_at|date:"Y-m-d H:i" }}
+                                        <i class="fas fa-eye ms-2"></i> {{ post.view_count }}
+                                        <i class="fas fa-comment ms-2"></i> {{ post.comments.count }}
+                                    </small>
+                                    <span class="badge bg-secondary">{{ post.category.name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">没有找到相关帖子</h5>
+                        <p class="text-muted">请尝试使用其他关键词搜索</p>
+                        <a href="{% url 'forum:post_list' %}" class="btn btn-primary mt-2">返回论坛</a>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">请输入搜索关键词</h5>
+                    <p class="text-muted">在搜索框中输入您想查找的内容</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'gallery',  # 添加作品展示应用
-    'quotation',  # 添加报价应用
+    'gallery',
+    'quotation',
+    'forum',  # 论坛应用
 ]
 
 MIDDLEWARE = [
@@ -149,7 +150,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Docker环境下的一些额外配置
-if os.environ.get('DOCKER_ENV'):
-    # 在Docker环境中，确保文件权限正确
-    FILE_UPLOAD_PERMISSIONS = 0o644
+# 登录后重定向URL
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

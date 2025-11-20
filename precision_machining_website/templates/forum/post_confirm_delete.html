@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}删除帖子 - 论坛 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0 text-danger">删除帖子</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle"></i> 确认删除</h5>
+                    <p class="mb-0">您确定要删除帖子 "<strong>{{ post.title }}</strong>" 吗？此操作不可恢复。</p>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6>帖子信息</h6>
+                        <p class="mb-1"><strong>标题：</strong>{{ post.title }}</p>
+                        <p class="mb-1"><strong>作者：</strong>{{ post.author.username }}</p>
+                        <p class="mb-1"><strong>发布时间：</strong>{{ post.created_at|date:"Y-m-d H:i" }}</p>
+                        <p class="mb-0"><strong>浏览量：</strong>{{ post.view_count }}</p>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'forum:post_detail' post.pk %}" class="btn btn-secondary">取消</a>
+                        <button type="submit" class="btn btn-danger">确认删除</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

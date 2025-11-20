@@ -1,4 +1,4 @@
-version: '2'
+name: precision-machining
 
 services:
   web:
@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Windows 环境下的卷映射
+      # Linux 环境下的卷映射
       - ./precision_machining_website:/app
     environment:
       - DEBUG=0
@@ -25,7 +25,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      # Windows 环境下使用命名卷
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
