@@ -3,138 +3,181 @@
 {% block title %}报价结果 - 精工智造{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">智能报价参考</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">报价结果</h1>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5>智能估价参考</h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <h5><i class="fas fa-lightbulb me-2"></i>初级制造顾问提示</h5>
-                    <p>以下报价为基于模型几何的初步估算，是您预算规划的可靠参考。</p>
-                    <p><strong>最终精准报价需经制造专家人工审核后确认</strong>，但此价格可作为您预算规划的可靠参考。</p>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>报价详情 #{{ quotation.id }}</h5>
                 </div>
-                
-                <div class="pricing-result text-center py-4">
-                    <h3 class="display-4 text-primary">¥{{ price_min|floatformat:0 }} 起</h3>
-                    <p class="lead">智能估价参考</p>
-                </div>
-                
-                <div class="text-center mt-3">
-                    <button class="btn btn-success btn-lg" onclick="requestAccurateQuote()">
-                        <i class="fas fa-paper-plane me-2"></i>申请精准报价
-                    </button>
-                    <p class="text-muted mt-2">我们的制造专家将在1小时内对您的模型进行深度可制造性审查，并提供最终的精准报价和确认交期。</p>
-                </div>
-                
-                {% if factor_details %}
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <h5>价格计算详情</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td><strong>基础价格</strong></td>
-                                <td>¥{{ factor_details.base_price|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>材料系数</strong></td>
-                                <td>{{ factor_details.material_multiplier|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>数量因子</strong></td>
-                                <td>{{ factor_details.quantity_factor|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>数量</strong></td>
-                                <td>{{ factor_details.quantity }}</td>
-                            </tr>
-                        </table>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>客户信息</h6>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>客户姓名</strong></td>
+                                    <td>{{ quotation.name }}</td>
+                                </tr>
+                                {% if quotation.contact_person %}
+                                <tr>
+                                    <td><strong>联系人</strong></td>
+                                    <td>{{ quotation.contact_person }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>联系电话</strong></td>
+                                    <td>{{ quotation.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>联系邮箱</strong></td>
+                                    <td>{{ quotation.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
                         
-                        <h6>模型相关因子</h6>
-                        <table class="table table-bordered">
-                            <thead>
+                        <div class="col-md-6">
+                            <h6>项目信息</h6>
+                            <table class="table table-bordered">
                                 <tr>
-                                    <th>因子名称</th>
-                                    <th>值</th>
-                                    <th>说明</th>
+                                    <td><strong>零件名称</strong></td>
+                                    <td>{{ quotation.part_name|default:"未提供" }}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {% for factor in factor_details.factors %}
                                 <tr>
-                                    <td>{{ factor.name }}</td>
-                                    <td>{{ factor.value|floatformat:2 }}</td>
-                                    <td>{{ factor.description }}</td>
+                                    <td><strong>加工类型</strong></td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
                                 </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <h5>项目信息</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td><strong>加工类型</strong></td>
-                                <td>{{ quotation.get_processing_type_display }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>材料</strong></td>
-                                <td>{{ quotation.get_material_display }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>数量</strong></td>
-                                <td>{{ quotation.quantity }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>精度要求</strong></td>
-                                <td>{{ quotation.accuracy }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>表面处理</strong></td>
-                                <td>{{ quotation.get_surface_treatment_display }}</td>
-                            </tr>
-                        </table>
+                                <tr>
+                                    <td><strong>材料</strong></td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>数量</strong></td>
+                                    <td>{{ quotation.quantity }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>精度要求</strong></td>
+                                    <td>{{ quotation.accuracy }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>表面处理</strong></td>
+                                    <td>{{ quotation.get_surface_treatment_display }}</td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <h5>联系信息</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td><strong>姓名</strong></td>
-                                <td>{{ quotation.name }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>邮箱</strong></td>
-                                <td>{{ quotation.email }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>电话</strong></td>
-                                <td>{{ quotation.phone }}</td>
-                            </tr>
-                        </table>
-                        
-                        {% if quotation.description %}
-                        <h5>附加说明</h5>
-                        <p>{{ quotation.description|linebreaks }}</p>
-                        {% endif %}
+                    {% if quotation.description %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>附加说明</h6>
+                            <p>{{ quotation.description|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if quotation.model_file %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>3D模型文件</h6>
+                            <p><a href="{{ quotation.model_file.url }}" target="_blank">{{ quotation.model_file.name }}</a></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>价格信息</h5>
+                </div>
+                <div class="card-body">
+                    {% if quotation.final_price %}
+                    <div class="mb-3">
+                        <h6>最终价格</h6>
+                        <p class="display-6 text-success">¥{{ quotation.final_price|floatformat:2 }}</p>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <h6>预估价格</h6>
+                        <p class="display-6 text-primary">¥{{ price_min|floatformat:0 }} 起</p>
+                        <p class="text-muted">价格区间: ¥{{ price_min|floatformat:2 }} - ¥{{ price_max|floatformat:2 }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <h6>报价状态</h6>
+                        <span class="badge bg-{% if quotation.status == 'quoted' %}success{% elif quotation.status == 'pending' %}warning{% elif quotation.status == 'processing' %}primary{% elif quotation.status == 'confirmed' %}info{% else %}secondary{% endif %} fs-6">
+                            {{ quotation.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    {% if quotation.status == 'pending' or quotation.status == 'processing' %}
+                        <div class="alert alert-warning small p-2 mt-2 mb-0">
+                            <i class="fas fa-clock me-1"></i> 
+                            我们的制造专家正在对您的模型进行深度可制造性审查，将在1小时内提供最终的精准报价。
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quotation:quotation_request' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt me-1"></i> 重新报价
+                        </a>
+                        <a href="{% url 'quotation:user_quotation_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-1"></i> 我的报价单
+                        </a>
+                        <a href="{% url 'gallery:work_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-images me-1"></i> 案例展示
+                        </a>
                     </div>
                 </div>
-                
-                {% if quotation.volume or quotation.surface_area %}
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <h5>3D模型分析结果</h5>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-headset me-2"></i>技术支持</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-center">
+                        <i class="fas fa-comments text-success fa-2x mb-3"></i><br>
+                        需要人工协助？联系我们的技术专家获取专业建议
+                    </p>
+                    <ul class="list-unstyled text-center mb-3">
+                        <li><strong><i class="fas fa-phone me-2"></i>电话：</strong> 138-6278-3302</li>
+                        <li><strong><i class="fas fa-envelope me-2"></i>邮箱：</strong> jxjk@163.com</li>
+                        <li><strong><i class="fas fa-clock me-2"></i>时间：</strong> 周一至周五 9:00-18:00</li>
+                    </ul>
+                    <div class="text-center">
+                        <button class="btn btn-success btn-sm" onclick="contactUs()">
+                            <i class="fas fa-comment-dots me-1"></i>在线沟通
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if quotation.volume or quotation.surface_area %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>模型分析结果</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
                         <table class="table table-bordered">
                             {% if quotation.volume %}
                             <tr>
@@ -171,26 +214,6 @@
                             </tr>
                             {% endif %}
                             
-                            <!-- 注释掉最小拐角半径的显示 -->
-                            <!--
-                            {% if quotation.min_radius %}
-                            <tr>
-                                <td><strong>最小拐角半径</strong></td>
-                                <td>{{ quotation.min_radius|floatformat:2 }} mm</td>
-                            </tr>
-                            {% endif %}
-                            -->
-                            
-                            <!-- 注释掉最小刀具直径的显示 -->
-                            <!--
-                            {% if quotation.min_tool_diameter %}
-                            <tr>
-                                <td><strong>最小刀具直径</strong></td>
-                                <td>{{ quotation.min_tool_diameter|floatformat:2 }} mm</td>
-                            </tr>
-                            {% endif %}
-                            -->
-                            
                             {% if quotation.machining_difficulty %}
                             <tr>
                                 <td><strong>加工难度评分</strong></td>
@@ -200,56 +223,226 @@
                         </table>
                     </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
+    {% endif %}
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">获取精确报价</h5>
-                <p class="card-text">
-                    想要获得更精确的报价？请联系我们专业的技术团队进行深度审核。
-                </p>
-                <ul class="list-unstyled">
-                    <li><strong>电话：</strong> 138-6278-3302</li>
-                    <li><strong>邮箱：</strong> jxjk@163.com</li>
-                    <li><strong>工作时间：</strong> 周一至周五 9:00-18:00</li>
-                </ul>
-                <button class="btn btn-success" onclick="contactUs()">联系客服</button>
-            </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">服务优势</h5>
-                <ul>
-                    <li>10年以上精密加工经验</li>
-                    <li>拥有多种先进加工设备</li>
-                    <li>严格的质量控制体系</li>
-                    <li>快速打样和批量生产能力</li>
-                    <li>专业技术支持服务</li>
-                </ul>
+    {% if factor_details %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>价格计算详情</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>项目</th>
+                                    <th>值</th>
+                                    <th>说明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>基础价格</td>
+                                    <td>¥{{ factor_details.base_price|floatformat:2 }}</td>
+                                    <td>基于加工类型的基础价格</td>
+                                </tr>
+                                <tr>
+                                    <td>材料系数</td>
+                                    <td>{{ factor_details.material_multiplier|floatformat:2 }}</td>
+                                    <td>基于所选材料的调整系数</td>
+                                </tr>
+                                <tr>
+                                    <td>数量折扣因子</td>
+                                    <td>{{ factor_details.quantity_factor|floatformat:2 }}</td>
+                                    <td>基于数量的折扣因子 (数量: {{ quotation.quantity }})</td>
+                                </tr>
+                                {% for factor in factor_details.factors %}
+                                <tr>
+                                    <td>{{ factor.name }}</td>
+                                    <td>{{ factor.value|floatformat:2 }}</td>
+                                    <td>{{ factor.description }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="fw-bold">
+                                    <td>总计</td>
+                                    <td>¥{{ quotation.final_price|floatformat:2 }}</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-12">
-        <a href="{% url 'quotation:quotation_request' %}" class="btn btn-primary">重新报价</a>
-        <a href="{% url 'gallery:work_list' %}" class="btn btn-secondary">查看作品案例</a>
-    </div>
+    {% endif %}
+    
+    <!-- 根据报价状态显示不同的操作按钮 -->
+    {% if quotation.status == 'quoted' %}
+        {% if not quotation.order_set.exists %}
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <div class="alert alert-success shadow-sm">
+                        <h5><i class="fas fa-check-circle me-2"></i>已生成正式报价</h5>
+                        <p class="mb-2">制造专家已完成审核，已生成最终报价单。</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'orders:create_order' quotation.id %}" class="btn btn-success btn-lg px-4">
+                                <i class="fas fa-shopping-cart me-2"></i>立即下单
+                            </a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'orders:create_order' quotation.id %}" class="btn btn-success btn-lg px-4">
+                                <i class="fas fa-sign-in-alt me-2"></i>登录并下单
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>订单已创建</h5>
+                        <p class="mb-2">您已基于此报价创建了订单。</p>
+                        {% for order in quotation.order_set.all %}
+                            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-primary px-4">
+                                <i class="fas fa-file-invoice me-2"></i>查看订单 #{{ order.id }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% elif quotation.status == 'confirmed' %}
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>订单已创建</h5>
+                    <p class="mb-2">您已基于此报价创建了订单。</p>
+                    {% for order in quotation.order_set.all %}
+                        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-primary px-4">
+                            <i class="fas fa-file-invoice me-2"></i>查看订单 #{{ order.id }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% elif quotation.status != 'quoted' and quotation.status != 'confirmed' %}
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button class="btn btn-primary btn-lg px-4" id="requestAccurateQuoteBtn" onclick="requestAccurateQuote({{ quotation.id }})">
+                    <i class="fas fa-paper-plane me-2"></i>申请专家精准报价
+                </button>
+                <p class="text-muted mt-2 mb-0">专业制造工程师将在1小时内完成深度DFM分析，提供精准报价和交期</p>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <script>
 function contactUs() {
-    alert("请联系我们的客服：138-6278-3302 或发送邮件至 jxjk@163.com");
+    Swal.fire({
+        title: '联系客服',
+        html: '<div class="text-start">' +
+              '<p><i class="fas fa-phone me-2"></i> <strong>电话：</strong> 138-6278-3302</p>' +
+              '<p><i class="fas fa-envelope me-2"></i> <strong>邮箱：</strong> jxjk@163.com</p>' +
+              '<p><i class="fas fa-clock me-2"></i> <strong>工作时间：</strong> 周一至周五 9:00-18:00</p>' +
+              '<p class="mt-3">欢迎随时联系我们获取专业技术支持！</p>' +
+              '</div>',
+        icon: 'info',
+        confirmButtonText: '确定',
+        customClass: {
+            popup: 'swal2-modal'
+        }
+    });
 }
 
-function requestAccurateQuote() {
-    alert("感谢您的信任！我们的制造专家将在1小时内对您的模型进行深度可制造性审查，并向您提供最终的精准报价和确认交期。");
+function requestAccurateQuote(quotationId) {
+    // 显示提示信息
+    Swal.fire({
+        title: '申请成功！',
+        text: '感谢您的信任！我们的制造专家将在1小时内对您的模型进行深度可制造性审查，并向您提供最终的精准报价和确认交期。',
+        icon: 'success',
+        confirmButtonText: '确定'
+    });
+    
+    // 发送AJAX请求更新报价状态
+    fetch(`/quotation/${quotationId}/request_accurate/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            'quotation_id': quotationId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 刷新页面以显示更新后的状态
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            Swal.fire({
+                title: '操作失败',
+                text: '请求处理失败，请稍后重试。',
+                icon: 'error',
+                confirmButtonText: '确定'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: '网络错误',
+            text: '请求处理失败，请检查网络连接后重试。',
+            icon: 'error',
+            confirmButtonText: '确定'
+        });
+    });
 }
+
+// 获取CSRF token的辅助函数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// 确保SweetAlert2库已加载
+document.addEventListener('DOMContentLoaded', function() {
+    // 动态加载SweetAlert2样式
+    if (!document.querySelector('link[href*="sweetalert2"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+        document.head.appendChild(link);
+    }
+    
+    // 动态加载SweetAlert2脚本
+    if (typeof Swal === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+        script.onload = function() {
+            console.log('SweetAlert2 loaded successfully');
+        };
+        document.head.appendChild(script);
+    }
+});
 </script>
 {% endblock %}

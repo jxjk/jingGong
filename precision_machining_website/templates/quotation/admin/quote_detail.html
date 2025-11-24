@@ -9,6 +9,15 @@
     </div>
 </div>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
 <div class="row">
     <div class="col-md-6">
         <div class="card">
@@ -21,6 +30,12 @@
                         <td><strong>姓名</strong></td>
                         <td>{{ quote.name }}</td>
                     </tr>
+                    {% if quote.contact_person %}
+                    <tr>
+                        <td><strong>联系人</strong></td>
+                        <td>{{ quote.contact_person }}</td>
+                    </tr>
+                    {% endif %}
                     <tr>
                         <td><strong>邮箱</strong></td>
                         <td>{{ quote.email }}</td>
@@ -56,6 +71,10 @@
             <div class="card-body">
                 <table class="table table-bordered">
                     <tr>
+                        <td><strong>零件名称</strong></td>
+                        <td>{{ quote.part_name|default:"未提供" }}</td>
+                    </tr>
+                    <tr>
                         <td><strong>加工类型</strong></td>
                         <td>{{ quote.get_processing_type_display }}</td>
                     </tr>
@@ -75,6 +94,12 @@
                         <td><strong>表面处理</strong></td>
                         <td>{{ quote.get_surface_treatment_display }}</td>
                     </tr>
+                    {% if quote.description %}
+                    <tr>
+                        <td><strong>附加说明</strong></td>
+                        <td>{{ quote.description|linebreaks }}</td>
+                    </tr>
+                    {% endif %}
                 </table>
             </div>
         </div>
@@ -82,28 +107,17 @@
 </div>
 
 <div class="row mt-4">
-    <div class="col-12">
+    <div class="col-md-6">
+        {% if quote.model_file %}
         <div class="card">
             <div class="card-header">
-                <h5>附加信息</h5>
+                <h5>3D模型文件</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <h6>附加说明</h6>
-                    {% if quote.description %}
-                        <p>{{ quote.description|linebreaks }}</p>
-                    {% else %}
-                        <p class="text-muted">无附加说明</p>
-                    {% endif %}
-                </div>
-                
-                {% if quote.model_file %}
                 <div class="mb-3">
                     <h6>3D模型文件</h6>
                     <p><a href="{{ quote.model_file.url }}" target="_blank">{{ quote.model_file.name }}</a></p>
                 </div>
-                {% endif %}
-                
                 {% if quote.volume or quote.surface_area %}
                 <div class="mb-3">
                     <h6>模型分析结果</h6>
@@ -174,12 +188,91 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>价格信息</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    {% if quote.estimated_price %}
+                    <tr>
+                        <td><strong>预估价格</strong></td>
+                        <td>¥{{ quote.estimated_price|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    <tr>
+                        <td><strong>最终价格</strong></td>
+                        <td>
+                            {% if quote.final_price %}
+                                <strong class="text-success">¥{{ quote.final_price|floatformat:2 }}</strong>
+                            {% else %}
+                                <span class="text-muted">未设置</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    {% if quote.price_explanation %}
+                    <tr>
+                        <td><strong>价格说明</strong></td>
+                        <td>{{ quote.price_explanation|linebreaks }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    <tr>
+                        <td><strong>报价状态</strong></td>
+                        <td>
+                            <span class="badge bg-{% if quote.status == 'quoted' %}success{% elif quote.status == 'pending' %}warning{% elif quote.status == 'processing' %}primary{% elif quote.status == 'confirmed' %}info{% else %}secondary{% endif %}">
+                                {{ quote.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                
+                <!-- 更新报价表单 -->
+                <div class="mt-4">
+                    <h6>更新报价信息</h6>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.final_price.id_for_label }}" class="form-label">最终价格 (¥)</label>
+                            {{ form.final_price }}
+                            {% if form.final_price.errors %}
+                                <div class="text-danger">{{ form.final_price.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.price_explanation.id_for_label }}" class="form-label">价格说明</label>
+                            {{ form.price_explanation }}
+                            {% if form.price_explanation.errors %}
+                                <div class="text-danger">{{ form.price_explanation.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">报价状态</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">更新报价</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="row mt-4">
     <div class="col-12">
-        <a href="{% url 'quotation:admin_quote_list' %}" class="btn btn-secondary">返回列表</a>
+        <a href="{% url 'quotation:admin_quotation_list' %}" class="btn btn-secondary">返回列表</a>
         {% if not quote.is_processed %}
         <button type="button" class="btn btn-success" onclick="markAsProcessed({{ quote.id }})">标记为已处理</button>
         {% endif %}

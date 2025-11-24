@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from quotation.models import QuotationRequest
 
 
 class Order(models.Model):
@@ -21,6 +22,7 @@ class Order(models.Model):
     # 基本信息
     order_number = models.CharField('订单号', max_length=50, unique=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='客户')
+    quotation_request = models.ForeignKey(QuotationRequest, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='报价请求')
     created_at = models.DateTimeField('创建时间', default=timezone.now)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
     

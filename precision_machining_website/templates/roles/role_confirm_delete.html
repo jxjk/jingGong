@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}删除角色 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">删除角色</h1>
+            <a href="{% url 'roles:role_list' %}" class="btn btn-secondary mb-3">返回角色列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">确认删除角色</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <p>您确定要删除角色 <strong>{{ role.name }}</strong> 吗？</p>
+                        <p class="text-danger">注意：此操作不可撤销，与该角色关联的所有用户将失去相关权限。</p>
+                        
+                        <button type="submit" class="btn btn-danger">确认删除</button>
+                        <a href="{% url 'roles:role_list' %}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,8 +1,13 @@
 from django.db import models
 from django.utils import timezone
+from django.urls import reverse
+from django.contrib.auth.models import User
+import os
+
 
 class QuotationRequest(models.Model):
     """报价请求模型"""
+    
     # 加工类型选项
     PROCESSING_TYPES = [
         ('cnc_milling', 'CNC铣削'),
@@ -28,12 +33,24 @@ class QuotationRequest(models.Model):
         ('other', '其他'),
     ]
     
+    # 报价请求状态
+    QUOTATION_STATUS = [
+        ('pending', '待处理'),
+        ('processing', '处理中'),
+        ('quoted', '已报价'),
+        ('confirmed', '已确认'),
+        ('cancelled', '已取消'),
+    ]
+    
     # 基本信息
     name = models.CharField(max_length=100, verbose_name='姓名')
     email = models.EmailField(verbose_name='邮箱')
     phone = models.CharField(max_length=20, verbose_name='电话')
+    customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='客户')  # 添加用户关联字段
+    contact_person = models.CharField(max_length=100, blank=True, verbose_name='联系人')  # 添加联系人字段
     
     # 项目信息
+    part_name = models.CharField(max_length=200, blank=True, verbose_name='零件名称')  # 添加零件名称字段
     processing_type = models.CharField(max_length=20, choices=PROCESSING_TYPES, verbose_name='加工类型')
     material = models.CharField(max_length=20, choices=MATERIALS, verbose_name='材料')
     quantity = models.PositiveIntegerField(verbose_name='数量')
@@ -99,8 +116,15 @@ class QuotationRequest(models.Model):
     cq_utilization_percent = models.FloatField('材料利用率(%)', blank=True, null=True)
     cq_waste_volume = models.FloatField('材料浪费量', blank=True, null=True)
     
+    # 报价信息
+    status = models.CharField('报价状态', max_length=20, choices=QUOTATION_STATUS, default='pending')
+    estimated_price = models.DecimalField('预估价格', max_digits=10, decimal_places=2, null=True, blank=True)
+    final_price = models.DecimalField('最终价格', max_digits=10, decimal_places=2, null=True, blank=True)
+    price_explanation = models.TextField('价格说明', blank=True)
+    
     # 时间戳
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     is_processed = models.BooleanField(default=False, verbose_name='已处理')
     
     class Meta:
@@ -111,6 +135,11 @@ class QuotationRequest(models.Model):
     def __str__(self):
         return f"{self.name}的报价请求 - {self.created_at.strftime('%Y-%m-%d')}"
 
+    def can_delete(self, user):
+        """检查用户是否有权限删除此报价请求"""
+        # 用户可以删除自己的报价请求，或者管理员可以删除任何报价请求
+        return user.is_authenticated and (self.customer == user or user.is_staff)
+
     def get_machining_difficulty_display(self):
         difficulty_mapping = {
             'EASY': '容易',
@@ -119,6 +148,28 @@ class QuotationRequest(models.Model):
             'VERY_HARD': '非常困难'
         }
         return difficulty_mapping.get(self.oc_machining_difficulty, '未评估')
+
+    def save(self, *args, **kwargs):
+        # 如果没有提供零件名称，则自动生成
+        if not self.part_name:
+            if self.model_file:
+                # 使用模型文件名作为基础
+                filename = os.path.basename(self.model_file.name)
+                name_without_ext = os.path.splitext(filename)[0]
+                self.part_name = f"{name_without_ext}_{self.created_at.strftime('%Y%m%d')}"
+            else:
+                # 如果没有模型文件，则使用加工类型和日期
+                processing_type_display = dict(self.PROCESSING_TYPES).get(self.processing_type, '未知')
+                self.part_name = f"{processing_type_display}_{self.created_at.strftime('%Y%m%d')}"
+        
+        # 如果用户已登录，设置客户关联
+        if not self.customer_id and self.email:
+            try:
+                self.customer = User.objects.get(email=self.email)
+            except User.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
 
 
 class QuotationAdjustmentFactor(models.Model):

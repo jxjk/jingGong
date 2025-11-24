@@ -7,188 +7,274 @@
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">订单详情</h1>
-            <a href="{% url 'orders:order_list' %}" class="btn btn-secondary mb-3">返回订单列表</a>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-8">
-            <div class="card mb-4">
+            <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">订单信息</h5>
+                    <h5>订单信息</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <td><strong>订单号:</strong></td>
-                                    <td>{{ order.order_number }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>产品名称:</strong></td>
-                                    <td>{{ order.product_name }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>产品描述:</strong></td>
-                                    <td>{{ order.product_description|linebreaks }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>数量:</strong></td>
-                                    <td>{{ order.quantity }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>单价:</strong></td>
-                                    <td>¥{{ order.unit_price }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>总价:</strong></td>
-                                    <td>¥{{ order.total_price }}</td>
-                                </tr>
-                            </table>
+                            <p><strong>订单号:</strong> {{ order.order_number }}</p>
+                            <p><strong>产品名称:</strong> {{ order.product_name }}</p>
+                            <p><strong>数量:</strong> {{ order.quantity }}</p>
+                            <p><strong>单价:</strong> ¥{{ order.unit_price }}</p>
                         </div>
                         <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <td><strong>当前状态:</strong></td>
-                                    <td>
-                                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
-                                            {{ order.get_status_display_chinese }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>承诺交期:</strong></td>
-                                    <td>{{ order.promised_delivery_date|date:"Y-m-d H:i"|default:"待确定" }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>创建时间:</strong></td>
-                                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>更新时间:</strong></td>
-                                    <td>{{ order.updated_at|date:"Y-m-d H:i" }}</td>
-                                </tr>
-                            </table>
+                            <p><strong>总价:</strong> <span class="text-success">¥{{ order.total_price }}</span></p>
+                            <p><strong>状态:</strong> 
+                                <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>更新时间:</strong> {{ order.updated_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p><strong>产品描述:</strong></p>
+                        <p>{{ order.product_description|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>客户信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>客户姓名:</strong> {{ order.customer_name }}</p>
+                            <p><strong>客户邮箱:</strong> {{ order.customer_email }}</p>
+                            <p><strong>客户电话:</strong> {{ order.customer_phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>收货地址:</strong> {{ order.shipping_address }}</p>
+                            <p><strong>收货联系人:</strong> {{ order.shipping_contact }}</p>
+                            <p><strong>收货电话:</strong> {{ order.shipping_phone }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="card mb-4">
+            
+            {% if order.notes %}
+            <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="mb-0">生产进度</h5>
+                    <h5>备注</h5>
                 </div>
                 <div class="card-body">
-                    {% if production_progress %}
-                        <div class="timeline">
-                            {% for progress in production_progress %}
-                            <div class="timeline-item">
-                                <div class="timeline-badge {% if progress.is_completed %}bg-success{% else %}bg-primary{% endif %}"></div>
-                                <div class="timeline-panel">
-                                    <div class="timeline-heading">
-                                        <h6 class="timeline-title">{{ progress.stage }}</h6>
-                                        <p class="text-muted">
-                                            <small>
-                                                {% if progress.started_at %}
-                                                    开始于 {{ progress.started_at|date:"Y-m-d H:i" }}
-                                                {% endif %}
-                                                {% if progress.is_completed %}
-                                                    完成于 {{ progress.completed_at|date:"Y-m-d H:i" }}
-                                                {% endif %}
-                                            </small>
-                                        </p>
-                                    </div>
-                                    <div class="timeline-body">
-                                        <p>{{ progress.description }}</p>
-                                        {% if progress.monitoring_description %}
-                                            <div class="alert alert-info">
-                                                <strong>车间监控信息:</strong> {{ progress.monitoring_description }}
-                                            </div>
-                                        {% endif %}
-                                        {% if progress.monitoring_image %}
-                                            <img src="{{ progress.monitoring_image.url }}" alt="生产监控图片" class="img-fluid rounded">
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-muted">暂无生产进度信息</p>
-                    {% endif %}
+                    <p>{{ order.notes|linebreaks }}</p>
                 </div>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">状态历史</h5>
-                </div>
-                <div class="card-body">
-                    {% if status_history %}
-                        <div class="list-group">
-                            {% for history in status_history %}
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ history.get_status_display }}</h6>
-                                    <small>{{ history.timestamp|date:"Y-m-d H:i" }}</small>
-                                </div>
-                                {% if history.operator %}
-                                    <small class="text-muted">操作人: {{ history.operator }}</small>
-                                {% endif %}
-                                {% if history.notes %}
-                                    <p class="mb-1">{{ history.notes }}</p>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-muted">暂无状态历史记录</p>
-                    {% endif %}
-                </div>
-            </div>
+            {% endif %}
         </div>
-
+        
         <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">客户信息</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>姓名:</strong> {{ order.customer_name }}</p>
-                    <p><strong>邮箱:</strong> {{ order.customer_email }}</p>
-                    <p><strong>电话:</strong> {{ order.customer_phone }}</p>
-                    {% if order.customer_company %}
-                        <p><strong>公司:</strong> {{ order.customer_company }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">收货信息</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>收货人:</strong> {{ order.shipping_contact }}</p>
-                    <p><strong>电话:</strong> {{ order.shipping_phone }}</p>
-                    <p><strong>地址:</strong> {{ order.shipping_address|linebreaks }}</p>
-                </div>
-            </div>
-
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">操作</h5>
-                </div>
                 <div class="card-body">
-                    {% if order.status == 'processing' %}
-                        <a href="{% url 'orders:production_monitoring' order.id %}" class="btn btn-primary w-100 mb-2">
-                            <i class="fas fa-video me-2"></i>查看生产监控
-                        </a>
+                    <h5 class="card-title">订单状态说明</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item {% if order.status == 'pending_review' %}bg-warning{% endif %}">
+                            <strong>待审核</strong> - 订单已创建，等待审核
+                        </li>
+                        <li class="list-group-item {% if order.status == 'confirmed' %}bg-primary text-white{% endif %}">
+                            <strong>已确认</strong> - 订单已确认，准备生产
+                        </li>
+                        <li class="list-group-item {% if order.status == 'in_production' %}bg-info text-white{% endif %}">
+                            <strong>生产中</strong> - 正在生产加工中
+                        </li>
+                        <li class="list-group-item {% if order.status == 'shipped' %}bg-success text-white{% endif %}">
+                            <strong>已发货</strong> - 产品已发出
+                        </li>
+                        <li class="list-group-item {% if order.status == 'completed' %}bg-success text-white{% endif %}">
+                            <strong>已完成</strong> - 订单已完成
+                        </li>
+                        <li class="list-group-item {% if order.status == 'cancelled' %}bg-danger text-white{% endif %}">
+                            <strong>已取消</strong> - 订单已取消
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">操作</h5>
+                    {% if order.status == 'pending_review' %}
+                    <button class="btn btn-danger" onclick="cancelOrder({{ order.id }})">取消订单</button>
                     {% endif %}
-                    <button class="btn btn-secondary w-100" disabled>联系客服</button>
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-secondary">返回订单列表</a>
                 </div>
             </div>
         </div>
     </div>
+    
+    {% if status_history %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>状态历史</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>状态</th>
+                                    <th>操作人</th>
+                                    <th>时间</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for history in status_history %}
+                                <tr>
+                                    <td>{{ history.get_status_display }}</td>
+                                    <td>{{ history.operator }}</td>
+                                    <td>{{ history.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ history.notes }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if production_progress %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>生产进度</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>工序</th>
+                                    <th>描述</th>
+                                    <th>状态</th>
+                                    <th>预计完成时间</th>
+                                    <th>实际完成时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for progress in production_progress %}
+                                <tr>
+                                    <td>{{ progress.stage }}</td>
+                                    <td>{{ progress.description }}</td>
+                                    <td>
+                                        {% if progress.is_completed %}
+                                            <span class="badge bg-success">已完成</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">进行中</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ progress.started_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ progress.completed_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if notifications %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>通知消息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>消息</th>
+                                    <th>时间</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for notification in notifications %}
+                                <tr>
+                                    <td>{{ notification.message }}</td>
+                                    <td>{{ notification.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        {% if notification.is_read %}
+                                            <span class="badge bg-secondary">已读</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">未读</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('确定要取消此订单吗？')) {
+        fetch(`/orders/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('订单已取消');
+                location.reload();
+            } else {
+                alert(data.message || '取消订单失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('取消订单失败，请稍后重试。');
+        });
+    }
+}
+
+// 获取CSRF token的辅助函数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %}

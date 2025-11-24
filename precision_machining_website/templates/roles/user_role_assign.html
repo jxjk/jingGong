@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}分配角色 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">分配角色</h1>
+            <a href="{% url 'roles:user_role_list' %}" class="btn btn-secondary mb-3">返回用户列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">为 {{ user_obj.username }} 分配角色</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">用户信息</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p class="mb-1"><strong>用户名:</strong> {{ user_obj.username }}</p>
+                                    <p class="mb-1"><strong>姓名:</strong> {{ user_obj.first_name }} {{ user_obj.last_name }}</p>
+                                    <p class="mb-1"><strong>邮箱:</strong> {{ user_obj.email }}</p>
+                                    <p class="mb-0"><strong>员工状态:</strong> 
+                                        {% if user_obj.is_staff %}
+                                            <span class="badge bg-success">员工</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">普通用户</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="roles" class="form-label">角色分配</label>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="select-all">
+                                        <label class="form-check-label" for="select-all">
+                                            全选/全不选
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% for role in roles %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input role-checkbox" type="checkbox" 
+                                               id="role_{{ role.id }}" 
+                                               name="roles" 
+                                               value="{{ role.id }}"
+                                               {% if role.id in user_role_ids %}checked{% endif %}>
+                                        <label class="form-check-label" for="role_{{ role.id }}">
+                                            <strong>{{ role.name }}</strong>
+                                            {% if role.description %}
+                                            <small class="d-block text-muted">{{ role.description }}</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    {% empty %}
+                                    <p class="text-muted">暂无可用角色</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">保存分配</button>
+                        <a href="{% url 'roles:user_role_list' %}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        roleCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    });
+    
+    roleCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            } else {
+                const allChecked = Array.from(roleCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

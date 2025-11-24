@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}我的报价单 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">我的报价单</h1>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <form class="row g-3" method="get">
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">所有状态</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="search" placeholder="搜索报价单号、零件名称或描述" value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">搜索</button>
+                    <a href="{% url 'quotation:user_quotation_list' %}" class="btn btn-secondary">重置</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>报价单号</th>
+                                    <th>零件名称</th>
+                                    <th>联系人</th>
+                                    <th>加工类型</th>
+                                    <th>材料</th>
+                                    <th>数量</th>
+                                    <th>预估价格</th>
+                                    <th>最终价格</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quotation in page_obj %}
+                                <tr>
+                                    <td>{{ quotation.id }}</td>
+                                    <td>{{ quotation.part_name|default:"未提供" }}</td>
+                                    <td>{{ quotation.contact_person|default:quotation.name }}</td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                    <td>{{ quotation.quantity }}</td>
+                                    <td>
+                                        {% if quotation.estimated_price %}
+                                            ¥{{ quotation.estimated_price|floatformat:2 }}
+                                        {% else %}
+                                            待计算
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if quotation.final_price %}
+                                            <strong>¥{{ quotation.final_price|floatformat:2 }}</strong>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if quotation.status == 'quoted' %}success{% elif quotation.status == 'pending' %}warning{% elif quotation.status == 'processing' %}primary{% elif quotation.status == 'confirmed' %}info{% else %}secondary{% endif %}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'quotation:quotation_result' quotation.id %}" class="btn btn-sm btn-primary">查看详情</a>
+                                        {% if quotation.status == 'quoted' %}
+                                            {% if quotation.order_set.exists %}
+                                                {% for order in quotation.order_set.all %}
+                                                    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-primary">查看订单</a>
+                                                {% endfor %}
+                                            {% else %}
+                                                <a href="{% url 'orders:create_order' quotation.id %}" class="btn btn-sm btn-success">创建订单</a>
+                                            {% endif %}
+                                        {% elif quotation.status == 'confirmed' %}
+                                            <a href="{% url 'orders:create_order' quotation.id %}" class="btn btn-sm btn-success">创建订单</a>
+                                        {% elif quotation.order_set.exists %}
+                                            {% for order in quotation.order_set.all %}
+                                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-info">查看订单</a>
+                                            {% endfor %}
+                                        {% endif %}
+                                        
+                                        <!-- 删除按钮 -->
+                                        {% if quotation.status in 'pending,processing' %}
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="deleteQuotation({{ quotation.id }})">
+                                                <i class="fas fa-trash"></i> 删除
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="11" class="text-center">暂无报价记录</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="报价列表分页">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">上一页</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">上一页</span>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">下一页</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">下一页</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteQuotation(quotationId) {
+    if (confirm('确定要删除此报价请求吗？')) {
+        fetch(`/quotation/delete/${quotationId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                'quotation_id': quotationId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('删除成功');
+                location.reload();
+            } else {
+                alert('删除失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败，请稍后重试。');
+        });
+    }
+}
+
+// 获取CSRF token的辅助函数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

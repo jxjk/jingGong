@@ -31,6 +31,62 @@
             </div>
         </div>
         
+        {% if user.is_authenticated %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">我的报价单</h5>
+            </div>
+            <div class="card-body">
+                {% if user_quotations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>报价单号</th>
+                                <th>加工类型</th>
+                                <th>材料</th>
+                                <th>数量</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quotation in user_quotations %}
+                            <tr>
+                                <td>{{ quotation.id }}</td>
+                                <td>{{ quotation.get_processing_type_display }}</td>
+                                <td>{{ quotation.get_material_display }}</td>
+                                <td>{{ quotation.quantity }}</td>
+                                <td>
+                                    {% if quotation.status == 'pending' %}
+                                        <span class="badge bg-secondary">待处理</span>
+                                    {% elif quotation.status == 'processing' %}
+                                        <span class="badge bg-warning">处理中</span>
+                                    {% elif quotation.status == 'quoted' %}
+                                        <span class="badge bg-success">已报价</span>
+                                    {% elif quotation.status == 'confirmed' %}
+                                        <span class="badge bg-info">已确认</span>
+                                    {% elif quotation.status == 'cancelled' %}
+                                        <span class="badge bg-danger">已取消</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'quotation:quotation_result' quotation.id %}" class="btn btn-sm btn-primary">查看详情</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">您还没有提交任何报价单。</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">DFM设计优化工具</h5>
@@ -38,7 +94,7 @@
                     使用我们的DFM(Design for Manufacturing)分析工具，可以评估您的设计是否易于制造，
                     识别潜在的制造问题，并获得优化建议。
                 </p>
-                <a href="{% url 'quotation:dfm_analysis' %}" class="btn btn-success">DFM分析</a>
+                <p class="text-muted">该功能正在开发中，敬请期待。</p>
             </div>
         </div>
     </div>
@@ -49,9 +105,22 @@
                 <h5 class="card-title">注意事项</h5>
                 <ul>
                     <li>报价结果仅供参考，实际价格可能有所差异</li>
-                    <li>支持的文件格式：STEP, STL, IGES等主流3D模型格式</li>
-                    <li>文件大小限制：不超过50MB</li>
-                    <li>如需精确报价，请联系我们的客服人员</li>
+                    <li>最终价格需要工程师人工审核确认</li>
+                    <li>支持的文件格式：STL</li>
+                    <li>文件大小限制：50MB</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">服务优势</h5>
+                <ul>
+                    <li>10年以上精密加工经验</li>
+                    <li>拥有多种先进加工设备</li>
+                    <li>严格的质量控制体系</li>
+                    <li>快速打样和批量生产能力</li>
+                    <li>专业技术支持服务</li>
                 </ul>
             </div>
         </div>

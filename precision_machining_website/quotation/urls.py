@@ -1,23 +1,27 @@
 from django.urls import path
-from . import views, admin_views
+from . import views
+from . import admin_views
 
 app_name = 'quotation'
 
 urlpatterns = [
-    # 用户端URL
+    # 用户报价请求
     path('', views.quotation_home, name='quotation_home'),
     path('request/', views.quotation_request, name='quotation_request'),
     path('result/<int:quotation_id>/', views.quotation_result, name='quotation_result'),
-    path('dfm/', views.dfm_analysis, name='dfm_analysis'),
     
-    # 管理端URL
+    # 用户报价管理
+    path('user/quotations/', views.user_quotation_list, name='user_quotation_list'),
+    path('delete/<int:quotation_id>/', views.delete_quotation, name='delete_quotation'),
+    
+    # 管理员功能
     path('admin/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
-    path('admin/quotes/', admin_views.quote_list, name='admin_quote_list'),
-    path('admin/quotes/<int:quote_id>/', admin_views.quote_detail, name='admin_quote_detail'),
-    path('admin/export/csv/', admin_views.export_quotes_csv, name='admin_export_csv'),
+    path('admin/quotations/', admin_views.quote_list, name='admin_quotation_list'),
+    path('admin/quotations/<int:quote_id>/', admin_views.quote_detail, name='admin_quotation_detail'),
     path('admin/factors/', admin_views.adjustment_factors, name='admin_factors'),
-    path('admin/factors/create/', admin_views.create_adjustment_factor, name='admin_factor_create'),
-    path('admin/factors/<int:factor_id>/edit/', admin_views.edit_adjustment_factor, name='admin_factor_edit'),
-    path('admin/dfm/', admin_views.dfm_analysis_list, name='admin_dfm_list'),
-    path('admin/dfm/<int:analysis_id>/', admin_views.dfm_analysis_detail, name='admin_dfm_detail'),
+    path('admin/factors/create/', admin_views.create_adjustment_factor, name='create_factor'),
+    path('admin/factors/<int:factor_id>/edit/', admin_views.edit_adjustment_factor, name='edit_factor'),
+    path('admin/dfm-analyses/', admin_views.dfm_analysis_list, name='admin_dfm_analysis_list'),
+    path('admin/dfm-analyses/<int:analysis_id>/', admin_views.dfm_analysis_detail, name='admin_dfm_analysis_detail'),
+    path('admin/export-quotes-csv/', admin_views.export_quotes_csv, name='export_quotes_csv'),
 ]

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}报价请求管理 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">报价请求管理</h1>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'quotation:user_quotation_handling' %}" class="btn btn-primary">
+                <i class="fas fa-tasks me-2"></i>用户报价处理
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">报价请求列表</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>客户姓名</th>
+                                    <th>加工类型</th>
+                                    <th>材料</th>
+                                    <th>数量</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quotation in page_obj %}
+                                <tr>
+                                    <td>{{ quotation.id }}</td>
+                                    <td>{{ quotation.name }}</td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                    <td>{{ quotation.quantity }}</td>
+                                    <td>
+                                        {% if quotation.status == 'pending' %}
+                                            <span class="badge bg-secondary">待处理</span>
+                                        {% elif quotation.status == 'processing' %}
+                                            <span class="badge bg-warning">处理中</span>
+                                        {% elif quotation.status == 'quoted' %}
+                                            <span class="badge bg-success">已报价</span>
+                                        {% elif quotation.status == 'confirmed' %}
+                                            <span class="badge bg-info">已确认</span>
+                                        {% elif quotation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">已取消</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'quotation:admin_quotation_detail' quotation.id %}" class="btn btn-sm btn-primary">查看详情</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">暂无报价请求</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="报价请求分页">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">&laquo; 首页</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一页</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">下一页</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">末页 &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

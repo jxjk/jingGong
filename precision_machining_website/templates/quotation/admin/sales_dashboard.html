@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block title %}业务员仪表盘 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">业务员仪表盘</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="{% url 'quotation:sales_dashboard' %}" class="list-group-item list-group-item-action active">
+                <i class="fas fa-tachometer-alt me-2"></i>仪表盘
+            </a>
+            <a href="{% url 'quotation:admin_quotation_list' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-file-invoice me-2"></i>报价管理
+            </a>
+            <a href="{% url 'quotation:user_quotation_handling' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-tasks me-2"></i>报价处理
+            </a>
+            <a href="{% url 'orders:admin_order_list' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-shopping-cart me-2"></i>订单管理
+            </a>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>快捷操作</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'quotation:admin_quotation_list' %}?status=pending" class="btn btn-warning btn-sm w-100 mb-2">
+                    <i class="fas fa-exclamation-circle me-1"></i>待处理报价
+                </a>
+                <a href="{% url 'orders:admin_order_list' %}?status=production" class="btn btn-info btn-sm w-100 mb-2">
+                    <i class="fas fa-cogs me-1"></i>生产中订单
+                </a>
+                <a href="{% url 'orders:admin_order_list' %}?status=shipped" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-truck me-1"></i>已发货订单
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <!-- 统计卡片 -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">总报价数</h5>
+                        <p class="card-text display-6">{{ total_quotations }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">总订单数</h5>
+                        <p class="card-text display-6">{{ total_orders }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">待处理报价</h5>
+                        <p class="card-text display-6">{{ pending_quotations }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">本月订单</h5>
+                        <p class="card-text display-6">{{ monthly_orders }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>最近30天业务趋势</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="businessTrendChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>订单状态分布</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="orderStatusChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最近活动 -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">最近报价请求</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>客户</th>
+                                        <th>加工类型</th>
+                                        <th>数量</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for quotation in recent_quotations %}
+                                    <tr>
+                                        <td>{{ quotation.name }}</td>
+                                        <td>{{ quotation.get_processing_type_display }}</td>
+                                        <td>{{ quotation.quantity }}</td>
+                                        <td>
+                                            {% if quotation.status == 'pending' %}
+                                                <span class="badge bg-secondary">待处理</span>
+                                            {% elif quotation.status == 'processing' %}
+                                                <span class="badge bg-warning">处理中</span>
+                                            {% elif quotation.status == 'quoted' %}
+                                                <span class="badge bg-success">已报价</span>
+                                            {% elif quotation.status == 'confirmed' %}
+                                                <span class="badge bg-info">已确认</span>
+                                            {% elif quotation.status == 'cancelled' %}
+                                                <span class="badge bg-danger">已取消</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'quotation:admin_quotation_detail' quotation.id %}" class="btn btn-sm btn-primary">查看</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">暂无报价请求</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">最近订单</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>订单号</th>
+                                        <th>客户</th>
+                                        <th>金额</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                    <tr>
+                                        <td>{{ order.order_number|truncatechars:10 }}</td>
+                                        <td>{{ order.customer_name }}</td>
+                                        <td>¥{{ order.total_price }}</td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-secondary">待处理</span>
+                                            {% elif order.status == 'confirmed' %}
+                                                <span class="badge bg-info">已确认</span>
+                                            {% elif order.status == 'production' %}
+                                                <span class="badge bg-warning">生产中</span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">已发货</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">已交付</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">已取消</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'orders:admin_order_detail' order.id %}" class="btn btn-sm btn-primary">查看</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">暂无订单</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 业务趋势图表
+    const trendCtx = document.getElementById('businessTrendChart').getContext('2d');
+    
+    // 构建业务趋势数据
+    const trendDates = [];
+    const quotationCounts = [];
+    const orderCounts = [];
+    
+    {% for item in business_trend %}
+        trendDates.push("{{ item.date|escapejs }}");
+        quotationCounts.push({{ item.quotation_count }});
+        orderCounts.push({{ item.order_count }});
+    {% endfor %}
+    
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendDates,
+            datasets: [
+                {
+                    label: '报价数',
+                    data: quotationCounts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                },
+                {
+                    label: '订单数',
+                    data: orderCounts,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // 订单状态分布图表
+    const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    
+    // 构建订单状态统计数据
+    const statusLabels = [];
+    const statusCounts = [];
+    const statusColors = [
+        'rgb(153, 102, 255)',
+        'rgb(54, 162, 235)',
+        'rgb(255, 205, 86)',
+        'rgb(75, 192, 192)',
+        'rgb(255, 99, 132)',
+        'rgb(201, 203, 207)'
+    ];
+    
+    {% for item in order_status_distribution %}
+        // 添加状态标签（中文名称）
+        switch("{{ item.status|escapejs }}") {
+            case 'pending':
+                statusLabels.push('待处理');
+                break;
+            case 'confirmed':
+                statusLabels.push('已确认');
+                break;
+            case 'production':
+                statusLabels.push('生产中');
+                break;
+            case 'shipped':
+                statusLabels.push('已发货');
+                break;
+            case 'delivered':
+                statusLabels.push('已交付');
+                break;
+            case 'cancelled':
+                statusLabels.push('已取消');
+                break;
+            default:
+                statusLabels.push("{{ item.status|escapejs }}");
+        }
+        statusCounts.push({{ item.count }});
+    {% endfor %}
+    
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: statusColors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

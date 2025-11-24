@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 from .models import Order, OrderStatusHistory, ProductionProgress, Notification
+from .decorators import admin_required
 
 
 def is_admin(user):
@@ -15,6 +16,7 @@ def is_admin(user):
 
 
 @user_passes_test(is_admin)
+@admin_required
 def admin_order_list(request):
     """管理员订单列表"""
     # 获取所有订单，支持搜索
@@ -50,6 +52,7 @@ def admin_order_list(request):
 
 
 @user_passes_test(is_admin)
+@admin_required
 def admin_order_detail(request, order_id):
     """管理员订单详情"""
     order = get_object_or_404(Order, id=order_id)
@@ -67,6 +70,7 @@ def admin_order_detail(request, order_id):
 
 
 @user_passes_test(is_admin)
+@admin_required
 def admin_update_order_status(request, order_id):
     """管理员更新订单状态"""
     order = get_object_or_404(Order, id=order_id)
@@ -104,6 +108,7 @@ def admin_update_order_status(request, order_id):
 
 
 @user_passes_test(is_admin)
+@admin_required
 def admin_add_production_progress(request, order_id):
     """管理员添加生产进度"""
     order = get_object_or_404(Order, id=order_id)
@@ -132,6 +137,7 @@ def admin_add_production_progress(request, order_id):
 
 
 @user_passes_test(is_admin)
+@admin_required
 def admin_update_production_progress(request, progress_id):
     """管理员更新生产进度"""
     progress = get_object_or_404(ProductionProgress, id=progress_id)
@@ -165,6 +171,7 @@ def admin_update_production_progress(request, progress_id):
 
 @require_POST
 @user_passes_test(is_admin)
+@admin_required
 def admin_send_notification(request, order_id):
     """管理员发送通知"""
     order = get_object_or_404(Order, id=order_id)

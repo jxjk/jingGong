@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if role %}编辑角色{% else %%}创建角色{% endif %} - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">{% if role %}编辑角色{% else %}创建角色{% endif %}</h1>
+            <a href="{% url 'roles:role_list' %}" class="btn btn-secondary mb-3">返回角色列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">角色信息</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">角色名称 *</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{% if role %}{{ role.name }}{% else %}{{ name|default:'' }}{% endif %}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">角色描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{% if role %}{{ role.description }}{% else %}{{ description|default:'' }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if role %}{% if role.is_active %}checked{% endif %}{% else %}{% if is_active %}checked{% endif %}{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    激活状态
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="permissions" class="form-label">权限分配</label>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="select-all">
+                                        <label class="form-check-label" for="select-all">
+                                            全选/全不选
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    {% regroup permissions|dictsort:"content_type.app_label" by content_type.app_label as permission_groups %}
+                                    {% for group in permission_groups %}
+                                    <div class="mb-3">
+                                        <h6>{{ group.grouper }}</h6>
+                                        {% for permission in group.list %}
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" 
+                                                   id="permission_{{ permission.id }}" 
+                                                   name="permissions" 
+                                                   value="{{ permission.id }}"
+                                                   {% if role %}
+                                                   {% if permission.id in permission_ids %}checked{% endif %}
+                                                   {% else %}
+                                                   {% if permission.id in permission_ids_default|default:permission_ids|default:'' %}checked{% endif %}
+                                                   {% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                {{ permission.name }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">保存角色</button>
+                        <a href="{% url 'roles:role_list' %}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        permissionCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    });
+    
+    permissionCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            } else {
+                const allChecked = Array.from(permissionCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

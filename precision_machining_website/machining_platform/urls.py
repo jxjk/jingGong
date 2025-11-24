@@ -23,13 +23,16 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('quotation/', include('quotation.urls')),
-    path('gallery/', include('gallery.urls')),
-    path('forum/', include('forum.urls')),
-    path('orders/', include('orders.urls')),
+    path('gallery/', include('gallery.urls', namespace='gallery')),
+    path('quotation/', include('quotation.urls', namespace='quotation')),
+    path('forum/', include('forum.urls', namespace='forum')),
+    path('orders/', include('orders.urls', namespace='orders')),
+    path('roles/', include('roles.urls', namespace='roles')),  # 添加角色管理URL
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
+    path('password_change/', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
+    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
 ]
 
 if settings.DEBUG:

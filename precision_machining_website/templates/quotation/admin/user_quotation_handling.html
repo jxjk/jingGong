@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}用户报价处理 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">用户报价处理</h1>
+            <p class="text-muted">及时处理用户报价请求，查看用户联系方式并提供反馈</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">待处理报价请求</h5>
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshQuotations()">
+                        <i class="fas fa-sync-alt me-1"></i>刷新
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>客户姓名</th>
+                                    <th>联系方式</th>
+                                    <th>加工类型</th>
+                                    <th>材料</th>
+                                    <th>数量</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quotationTableBody">
+                                {% for quotation in pending_quotations %}
+                                <tr id="quotation-{{ quotation.id }}">
+                                    <td>{{ quotation.id }}</td>
+                                    <td>{{ quotation.name }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="showContactInfo('{{ quotation.email }}', '{{ quotation.phone }}')">
+                                            <i class="fas fa-eye me-1"></i>查看
+                                        </button>
+                                    </td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                    <td>{{ quotation.quantity }}</td>
+                                    <td>
+                                        {% if quotation.status == 'pending' %}
+                                            <span class="badge bg-secondary">待处理</span>
+                                        {% elif quotation.status == 'processing' %}
+                                            <span class="badge bg-warning">处理中</span>
+                                        {% elif quotation.status == 'quoted' %}
+                                            <span class="badge bg-success">已报价</span>
+                                        {% elif quotation.status == 'confirmed' %}
+                                            <span class="badge bg-info">已确认</span>
+                                        {% elif quotation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">已取消</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'quotation:admin_quotation_detail' quotation.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit me-1"></i>处理
+                                        </a>
+                                        <button class="btn btn-sm btn-success" onclick="markAsProcessed({{ quotation.id }})">
+                                            <i class="fas fa-check me-1"></i>标记已处理
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center">暂无待处理的报价请求</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">最新报价请求</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>客户姓名</th>
+                                    <th>联系方式</th>
+                                    <th>加工类型</th>
+                                    <th>材料</th>
+                                    <th>数量</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quotation in latest_quotations %}
+                                <tr>
+                                    <td>{{ quotation.id }}</td>
+                                    <td>{{ quotation.name }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="showContactInfo('{{ quotation.email }}', '{{ quotation.phone }}')">
+                                            <i class="fas fa-eye me-1"></i>查看
+                                        </button>
+                                    </td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                    <td>{{ quotation.quantity }}</td>
+                                    <td>
+                                        {% if quotation.status == 'pending' %}
+                                            <span class="badge bg-secondary">待处理</span>
+                                        {% elif quotation.status == 'processing' %}
+                                            <span class="badge bg-warning">处理中</span>
+                                        {% elif quotation.status == 'quoted' %}
+                                            <span class="badge bg-success">已报价</span>
+                                        {% elif quotation.status == 'confirmed' %}
+                                            <span class="badge bg-info">已确认</span>
+                                        {% elif quotation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">已取消</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'quotation:admin_quotation_detail' quotation.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit me-1"></i>处理
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center">暂无报价请求</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 联系方式模态框 -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactModalLabel">客户联系方式</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>邮箱:</strong></label>
+                    <div id="contactEmail" class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>电话:</strong></label>
+                    <div id="contactPhone" class="form-control-plaintext"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showContactInfo(email, phone) {
+    document.getElementById('contactEmail').textContent = email;
+    document.getElementById('contactPhone').textContent = phone;
+    var contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+    contactModal.show();
+}
+
+function markAsProcessed(quotationId) {
+    if (confirm('确定要将此报价请求标记为已处理吗？')) {
+        fetch(`/quotation/${quotationId}/mark_processed/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                'quotation_id': quotationId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 从待处理列表中移除该行
+                const row = document.getElementById(`quotation-${quotationId}`);
+                if (row) {
+                    row.remove();
+                }
+                alert('已成功标记为已处理');
+            } else {
+                alert('操作失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('操作失败，请稍后重试。');
+        });
+    }
+}
+
+function refreshQuotations() {
+    location.reload();
+}
+
+// 获取CSRF token的辅助函数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

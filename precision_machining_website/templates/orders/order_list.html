@@ -37,7 +37,7 @@
                                         <td>¥{{ order.total_price }}</td>
                                         <td>
                                             <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
-                                                {{ order.get_status_display_chinese }}
+                                                {{ order.get_status_display }}
                                             </span>
                                         </td>
                                         <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>

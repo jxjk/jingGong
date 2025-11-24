@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'quotation',
     'forum',  # 论坛应用
     'orders',  # 添加订单模块
+    'roles',  # 添加角色管理模块
 ]
 
 MIDDLEWARE = [

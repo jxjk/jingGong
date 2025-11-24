@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}创建订单 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">创建订单</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>确认订单信息</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>产品信息</h6>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><strong>服务类型</strong></td>
+                                        <td>{{ quotation.get_processing_type_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>材料</strong></td>
+                                        <td>{{ quotation.get_material_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>数量</strong></td>
+                                        <td>{{ quotation.quantity }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>精度要求</strong></td>
+                                        <td>{{ quotation.accuracy }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>表面处理</strong></td>
+                                        <td>{{ quotation.get_surface_treatment_display }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>客户信息</h6>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><strong>姓名</strong></td>
+                                        <td>{{ quotation.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>邮箱</strong></td>
+                                        <td>{{ quotation.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>电话</strong></td>
+                                        <td>{{ quotation.phone }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>附加说明</h6>
+                                <p>{{ quotation.description|linebreaks }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6>收货信息</h6>
+                                <div class="mb-3">
+                                    <label for="shipping_address" class="form-label">收货地址 *</label>
+                                    <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="shipping_contact" class="form-label">收货联系人 *</label>
+                                        <input type="text" class="form-control" id="shipping_contact" name="shipping_contact" value="{{ quotation.name }}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="shipping_phone" class="form-label">联系电话 *</label>
+                                        <input type="text" class="form-control" id="shipping_phone" name="shipping_phone" value="{{ quotation.phone }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i>重要提示</h5>
+                                    <p>提交订单后，我们的工作人员将对您的订单进行审核。审核通过后，您将收到确认通知，并可以进行付款操作。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'quotation:quotation_result' quotation.id %}" class="btn btn-secondary">返回</a>
+                            <button type="submit" class="btn btn-success">确认创建订单</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>订单状态说明</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>待审核</strong> - 订单已提交，等待工作人员审核
+                        </li>
+                        <li class="list-group-item">
+                            <strong>待付款</strong> - 订单审核通过，等待客户付款
+                        </li>
+                        <li class="list-group-item">
+                            <strong>排产中</strong> - 已收到付款，正在安排生产计划
+                        </li>
+                        <li class="list-group-item">
+                            <strong>加工中</strong> - 正在进行生产加工
+                        </li>
+                        <li class="list-group-item">
+                            <strong>质检中</strong> - 加工完成，正在进行质量检测
+                        </li>
+                        <li class="list-group-item">
+                            <strong>已发货</strong> - 质检通过，已发货给客户
+                        </li>
+                        <li class="list-group-item">
+                            <strong>完成</strong> - 订单已完成
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>服务承诺</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>严格按图纸要求加工</li>
+                        <li>提供质量检测报告</li>
+                        <li>质量问题免费返工</li>
+                        <li>按时交付保障</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

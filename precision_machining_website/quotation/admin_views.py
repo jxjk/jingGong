@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from .models import QuotationRequest, QuotationAdjustmentFactor, DFMAnalysis
-from .forms import QuotationAdjustmentFactorForm
+from .forms import QuotationAdjustmentFactorForm, QuotationUpdateForm
 import csv
 from datetime import datetime, timedelta
 
@@ -55,8 +56,21 @@ def quote_list(request):
 def quote_detail(request, quote_id):
     """报价详情"""
     quote = get_object_or_404(QuotationRequest, id=quote_id)
+    
+    if request.method == 'POST':
+        form = QuotationUpdateForm(request.POST, instance=quote)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '报价信息更新成功！')
+            return redirect('quotation:admin_quotation_detail', quote_id=quote.id)
+        else:
+            messages.error(request, '表单数据有误，请检查后重新提交。')
+    else:
+        form = QuotationUpdateForm(instance=quote)
+    
     context = {
         'quote': quote,
+        'form': form
     }
     return render(request, 'quotation/admin/quote_detail.html', context)
 

@@ -5,10 +5,43 @@ class QuotationRequestForm(forms.ModelForm):
     """报价请求表单"""
     class Meta:
         model = QuotationRequest
-        fields = ['name', 'email', 'phone', 'processing_type', 'material', 
+        fields = ['email', 'phone', 'contact_person', 'part_name', 'processing_type', 'material', 
                  'quantity', 'accuracy', 'surface_treatment', 'description', 'model_file']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # 设置联系人字段为必填
+        self.fields['contact_person'].required = True
+
+    def clean_contact_person(self):
+        contact_person = self.cleaned_data.get('contact_person')
+        if not contact_person:
+            raise forms.ValidationError("联系人字段是必填的。")
+        return contact_person
+
+
+class QuotationUpdateForm(forms.ModelForm):
+    """报价更新表单，用于管理员更新最终价格和说明"""
+    class Meta:
+        model = QuotationRequest
+        fields = ['final_price', 'price_explanation', 'status']
+        widgets = {
+            'final_price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'placeholder': '请输入最终价格'
+            }),
+            'price_explanation': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': '请输入价格说明'
+            }),
+            'status': forms.Select(attrs={'class': 'form-control'})
         }
 
 
