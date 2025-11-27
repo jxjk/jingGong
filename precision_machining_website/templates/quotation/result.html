@@ -100,6 +100,7 @@
                     <h5>价格信息</h5>
                 </div>
                 <div class="card-body">
+                                    <div class="card-body">
                     {% if quotation.final_price %}
                     <div class="mb-3">
                         <h6>最终价格</h6>
@@ -112,6 +113,95 @@
                         <p class="text-muted">价格区间: ¥{{ price_min|floatformat:2 }} - ¥{{ price_max|floatformat:2 }}</p>
                     </div>
                     {% endif %}
+                    
+                    <!-- 超级用户价格调整功能 -->
+                    {% if user.is_superuser %}
+                    <div class="card border-warning mb-3">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fas fa-tools me-1"></i>超级用户功能</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="mb-2">
+                                <label for="profitMargin" class="form-label">利润率调整</label>
+                                <div class="input-group">
+                                    <input type="number" id="profitMargin" class="form-control" step="0.01" min="0" max="100" placeholder="输入利润率" value="{{ quotation.profit_margin|default:20.00 }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">调整利润率以重新计算最终价格</div>
+                            </div>
+                            
+                            <button class="btn btn-warning btn-sm w-100" id="updateProfitBtn" onclick="updateProfitMargin({{ quotation.id }})">
+                                <i class="fas fa-sync-alt me-1"></i>更新利润率
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 细分报价卡片 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">成本与利润细分</h6>
+                        </div>
+                        <div class="card-body p-2">
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td width="60%">材料费用</td>
+                                        <td class="text-end">¥{{ quotation.material_cost|floatformat:2|default:"0.00" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>加工费用</td>
+                                        <td class="text-end">¥{{ quotation.processing_cost|floatformat:2|default:"0.00" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>编程费用</td>
+                                        <td class="text-end">¥{{ quotation.programming_cost|floatformat:2|default:"0.00" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>表面处理费用</td>
+                                        <td class="text-end">¥{{ quotation.surface_treatment_cost|floatformat:2|default:"0.00" }}</td>
+                                    </tr>
+                                    {% if quotation.packaging_shipping_cost %}
+                                    <tr>
+                                        <td>包装物流费用</td>
+                                        <td class="text-end">¥{{ quotation.packaging_shipping_cost|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if quotation.tax_cost %}
+                                    <tr>
+                                        <td>税费</td>
+                                        <td class="text-end">¥{{ quotation.tax_cost|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if quotation.other_cost %}
+                                    <tr>
+                                        <td>其他费用</td>
+                                        <td class="text-end">¥{{ quotation.other_cost|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr class="table-success fw-bold">
+                                        <td>直接成本小计</td>
+                                        <td class="text-end">¥{{ quotation.get_direct_cost|floatformat:2|default:"0.00" }}</td>
+                                    </tr>
+                                    {% if quotation.profit_margin %}
+                                    <tr>
+                                        <td>利润 ({{ quotation.profit_margin|floatformat:1 }}%)</td>
+                                        <td class="text-end">¥{{ quotation.profit_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td>利润 (20%)</td>
+                                        <td class="text-end">¥{{ quotation.get_default_profit|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr class="table-active fw-bold">
+                                        <td>总计</td>
+                                        <td class="text-end">¥{{ quotation.final_price|floatformat:2|default:price_min|floatformat:2 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     
                     <div class="mb-3">
                         <h6>报价状态</h6>
@@ -247,30 +337,38 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>基础价格</td>
-                                    <td>¥{{ factor_details.base_price|floatformat:2 }}</td>
-                                    <td>基于加工类型的基础价格</td>
+                                    <td>体积因子</td>
+                                    <td>{{ factor_details.dmf_volume_factor|floatformat:2 }}</td>
+                                    <td>基于模型体积的材料成本调整 ({{ quotation.volume|floatformat:2|default:"0" }} cm³)</td>
                                 </tr>
                                 <tr>
-                                    <td>材料系数</td>
-                                    <td>{{ factor_details.material_multiplier|floatformat:2 }}</td>
-                                    <td>基于所选材料的调整系数</td>
+                                    <td>表面积因子</td>
+                                    <td>{{ factor_details.dmf_surface_area_factor|floatformat:2 }}</td>
+                                    <td>基于表面积的加工时间调整 ({{ quotation.surface_area|floatformat:2|default:"0" }} cm²)</td>
+                                </tr>
+                                <tr>
+                                    <td>复杂度因子</td>
+                                    <td>{{ factor_details.dmf_complexity_factor|floatformat:2 }}</td>
+                                    <td>基于模型复杂度的加工难度调整 ({{ quotation.complexity_score|floatformat:1|default:"0" }}/5)</td>
+                                </tr>
+                                <tr>
+                                    <td>精度因子</td>
+                                    <td>{{ factor_details.dmf_precision_factor|floatformat:2 }}</td>
+                                    <td>基于精度要求的加工成本调整 ({{ quotation.accuracy|default:"标准" }})</td>
+                                </tr>
+                                <tr>
+                                    <td>特征因子</td>
+                                    <td>{{ factor_details.dmf_feature_factor|floatformat:2 }}</td>
+                                    <td>基于特殊特征的加工难度调整 (孔、倒角等)</td>
                                 </tr>
                                 <tr>
                                     <td>数量折扣因子</td>
                                     <td>{{ factor_details.quantity_factor|floatformat:2 }}</td>
                                     <td>基于数量的折扣因子 (数量: {{ quotation.quantity }})</td>
                                 </tr>
-                                {% for factor in factor_details.factors %}
-                                <tr>
-                                    <td>{{ factor.name }}</td>
-                                    <td>{{ factor.value|floatformat:2 }}</td>
-                                    <td>{{ factor.description }}</td>
-                                </tr>
-                                {% endfor %}
                                 <tr class="fw-bold">
                                     <td>总计</td>
-                                    <td>¥{{ quotation.final_price|floatformat:2 }}</td>
+                                    <td>¥{{ quotation.final_price|floatformat:2|default:estimated_price|floatformat:2 }}</td>
                                     <td></td>
                                 </tr>
                             </tbody>
@@ -424,6 +522,69 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// 更新利润率函数
+function updateProfitMargin(quotationId) {
+    // 获取新的利润率
+    const profitMarginInput = document.getElementById('profitMargin');
+    const newProfitMargin = profitMarginInput.value;
+    
+    if (!newProfitMargin) {
+        Swal.fire({
+            title: '错误',
+            text: '请输入利润率！',
+            icon: 'error',
+            confirmButtonText: '确定'
+        });
+        return;
+    }
+    
+    // 发送AJAX请求更新利润率
+    fetch(`/quotation/admin/quotations/${quotationId}/update-profit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `profit_margin=${newProfitMargin}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 更新页面上的价格信息
+            document.querySelector('.display-6.text-success').textContent = `¥${data.new_price.toFixed(2)}`;
+            
+            // 更新利润金额显示（如果有的话）
+            const profitAmountElement = document.querySelector('td:contains("利润") + td');
+            if (profitAmountElement) {
+                profitAmountElement.textContent = `¥${data.profit_amount.toFixed(2)}`;
+            }
+            
+            Swal.fire({
+                title: '成功！',
+                text: `利润率已更新为 ${newProfitMargin}%，最终价格已更新为 ¥${data.new_price.toFixed(2)}`,
+                icon: 'success',
+                confirmButtonText: '确定'
+            });
+        } else {
+            Swal.fire({
+                title: '操作失败',
+                text: data.error || '更新利润率失败，请稍后重试。',
+                icon: 'error',
+                confirmButtonText: '确定'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: '网络错误',
+            text: '更新利润率失败，请检查网络连接后重试。',
+            icon: 'error',
+            confirmButtonText: '确定'
+        });
+    });
+}
+
 // 确保SweetAlert2库已加载
 document.addEventListener('DOMContentLoaded', function() {
     // 动态加载SweetAlert2样式
@@ -442,6 +603,26 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('SweetAlert2 loaded successfully');
         };
         document.head.appendChild(script);
+    }
+    
+    // 添加一个辅助函数来查找包含特定文本的元素
+    if (typeof HTMLElement.prototype.containsText === 'undefined') {
+        HTMLElement.prototype.containsText = function(text) {
+            return this.textContent.includes(text);
+        };
+    }
+    
+    // 修复原生querySelector无法按文本内容查询的问题
+    if (typeof document.querySelectorText === 'undefined') {
+        document.querySelectorText = function(text) {
+            const elements = document.getElementsByTagName('*');
+            for (let i = 0; i < elements.length; i++) {
+                if (elements[i].textContent.includes(text)) {
+                    return elements[i];
+                }
+            }
+            return null;
+        };
     }
 });
 </script>

@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+
+{% block title %}报价详情 - 管理员 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">报价详情 #{{ quotation.id }}</h1>
+            <a href="{% url 'quotation:admin_quotation_list' %}" class="btn btn-secondary mb-3">返回列表</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>报价信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>客户信息</h6>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>客户姓名</strong></td>
+                                    <td>{{ quotation.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>联系人</strong></td>
+                                    <td>{{ quotation.contact_person }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>联系电话</strong></td>
+                                    <td>{{ quotation.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>联系邮箱</strong></td>
+                                    <td>{{ quotation.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>项目信息</h6>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>零件名称</strong></td>
+                                    <td>{{ quotation.part_name|default:"未提供" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>加工类型</strong></td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>材料</strong></td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>数量</strong></td>
+                                    <td>{{ quotation.quantity }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>精度要求</strong></td>
+                                    <td>{{ quotation.accuracy }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>表面处理</strong></td>
+                                    <td>{{ quotation.get_surface_treatment_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>状态</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if quotation.status == 'quoted' %}success{% elif quotation.status == 'pending' %}warning{% elif quotation.status == 'processing' %}primary{% elif quotation.status == 'confirmed' %}info{% else %}secondary{% endif %}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if quotation.description %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>附加说明</h6>
+                            <p>{{ quotation.description|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if quotation.model_file %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>3D模型文件</h6>
+                            <p><a href="{{ quotation.model_file.url }}" target="_blank">{{ quotation.model_file.name }}</a></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>价格调整</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="price-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.final_price.id_for_label }}" class="form-label">最终价格</label>
+                            {{ form.final_price }}
+                            <div class="form-text">报价的最终价格</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profit_margin.id_for_label }}" class="form-label">利润率 (%)</label>
+                            {{ form.profit_margin }}
+                            <div class="form-text">利润率百分比</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profit_amount.id_for_label }}" class="form-label">利润金额</label>
+                            {{ form.profit_amount }}
+                            <div class="form-text">根据利润率计算的利润金额</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.material_cost.id_for_label }}" class="form-label">材料费用</label>
+                            {{ form.material_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.processing_cost.id_for_label }}" class="form-label">加工费用</label>
+                            {{ form.processing_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.programming_cost.id_for_label }}" class="form-label">编程费用</label>
+                            {{ form.programming_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.surface_treatment_cost.id_for_label }}" class="form-label">表面处理费用</label>
+                            {{ form.surface_treatment_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.packaging_shipping_cost.id_for_label }}" class="form-label">包装物流费用</label>
+                            {{ form.packaging_shipping_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.tax_cost.id_for_label }}" class="form-label">税费</label>
+                            {{ form.tax_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.other_cost.id_for_label }}" class="form-label">其他费用</label>
+                            {{ form.other_cost }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">报价状态</label>
+                            {{ form.status }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.price_explanation.id_for_label }}" class="form-label">价格说明</label>
+                            {{ form.price_explanation }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">更新报价</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if quotation.volume or quotation.surface_area %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>模型分析结果</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            {% if quotation.volume %}
+                            <tr>
+                                <td><strong>体积</strong></td>
+                                <td>{{ quotation.volume|floatformat:2 }} cm³</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.surface_area %}
+                            <tr>
+                                <td><strong>表面积</strong></td>
+                                <td>{{ quotation.surface_area|floatformat:2 }} cm²</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.bounding_box_length %}
+                            <tr>
+                                <td><strong>尺寸</strong></td>
+                                <td>{{ quotation.bounding_box_length|floatformat:2 }} × {{ quotation.bounding_box_width|floatformat:2 }} × {{ quotation.bounding_box_height|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.complexity_score %}
+                            <tr>
+                                <td><strong>复杂度评分</strong></td>
+                                <td>{{ quotation.complexity_score|floatformat:1 }}/5</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.max_aspect_ratio %}
+                            <tr>
+                                <td><strong>最大径长比</strong></td>
+                                <td>{{ quotation.max_aspect_ratio|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.machining_difficulty %}
+                            <tr>
+                                <td><strong>加工难度评分</strong></td>
+                                <td>{{ quotation.machining_difficulty|floatformat:1 }}/5</td>
+                            </tr>
+                            {% endif %}
+                            
+                            <!-- DFM分析相关字段 -->
+                            {% if quotation.dmf_volume_factor %}
+                            <tr>
+                                <td><strong>体积因子</strong></td>
+                                <td>{{ quotation.dmf_volume_factor|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.dmf_surface_area_factor %}
+                            <tr>
+                                <td><strong>表面积因子</strong></td>
+                                <td>{{ quotation.dmf_surface_area_factor|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.dmf_complexity_factor %}
+                            <tr>
+                                <td><strong>复杂度因子</strong></td>
+                                <td>{{ quotation.dmf_complexity_factor|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.processing_time_estimate %}
+                            <tr>
+                                <td><strong>预估加工时间</strong></td>
+                                <td>{{ quotation.processing_time_estimate|floatformat:2 }} 小时</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.estimated_material_cost %}
+                            <tr>
+                                <td><strong>DFM材料成本</strong></td>
+                                <td>¥{{ quotation.estimated_material_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.estimated_machining_cost %}
+                            <tr>
+                                <td><strong>DFM加工成本</strong></td>
+                                <td>¥{{ quotation.estimated_machining_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.estimated_tool_cost %}
+                            <tr>
+                                <td><strong>DFM工具成本</strong></td>
+                                <td>¥{{ quotation.estimated_tool_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if quotation.dfm_recommendations %}
+                            <tr>
+                                <td><strong>DFM建议</strong></td>
+                                <td>{{ quotation.dfm_recommendations|join:", "|truncatechars:100 }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// 自动计算价格功能
+document.addEventListener('DOMContentLoaded', function() {
+    const profitMarginInput = document.getElementById('{{ form.profit_margin.id_for_label }}');
+    const materialCostInput = document.getElementById('{{ form.material_cost.id_for_label }}');
+    const processingCostInput = document.getElementById('{{ form.processing_cost.id_for_label }}');
+    const programmingCostInput = document.getElementById('{{ form.programming_cost.id_for_label }}');
+    const surfaceTreatmentCostInput = document.getElementById('{{ form.surface_treatment_cost.id_for_label }}');
+    const packagingShippingInput = document.getElementById('{{ form.packaging_shipping_cost.id_for_label }}');
+    const taxInput = document.getElementById('{{ form.tax_cost.id_for_label }}');
+    const otherCostInput = document.getElementById('{{ form.other_cost.id_for_label }}');
+    const finalPriceInput = document.getElementById('{{ form.final_price.id_for_label }}');
+    const profitAmountInput = document.getElementById('{{ form.profit_amount.id_for_label }}');
+    
+    // 自动计算价格函数
+    function calculatePrice() {
+        if (profitMarginInput && materialCostInput && processingCostInput) {
+            // 计算直接成本
+            const directCost = (parseFloat(materialCostInput.value) || 0) + 
+                              (parseFloat(processingCostInput.value) || 0) + 
+                              (parseFloat(programmingCostInput.value) || 0) + 
+                              (parseFloat(surfaceTreatmentCostInput.value) || 0) + 
+                              (parseFloat(packagingShippingInput.value) || 0) + 
+                              (parseFloat(taxInput.value) || 0) + 
+                              (parseFloat(otherCostInput.value) || 0);
+            
+            // 计算利润金额和最终价格
+            const profitMargin = parseFloat(profitMarginInput.value) || 0;
+            const profitAmount = directCost * (profitMargin / 100);
+            const finalPrice = directCost + profitAmount;
+            
+            if (profitAmountInput) {
+                profitAmountInput.value = profitAmount.toFixed(2);
+            }
+            if (finalPriceInput) {
+                finalPriceInput.value = finalPrice.toFixed(2);
+            }
+        }
+    }
+    
+    // 为利润率和成本字段添加事件监听器
+    if (profitMarginInput) {
+        profitMarginInput.addEventListener('input', calculatePrice);
+    }
+    if (materialCostInput) {
+        materialCostInput.addEventListener('input', calculatePrice);
+    }
+    if (processingCostInput) {
+        processingCostInput.addEventListener('input', calculatePrice);
+    }
+    if (programmingCostInput) {
+        programmingCostInput.addEventListener('input', calculatePrice);
+    }
+    if (surfaceTreatmentCostInput) {
+        surfaceTreatmentCostInput.addEventListener('input', calculatePrice);
+    }
+    if (packagingShippingInput) {
+        packagingShippingInput.addEventListener('input', calculatePrice);
+    }
+    if (taxInput) {
+        taxInput.addEventListener('input', calculatePrice);
+    }
+    if (otherCostInput) {
+        otherCostInput.addEventListener('input', calculatePrice);
+    }
+    
+    // 页面加载时计算一次
+    calculatePrice();
+});
+
+// 表单提交处理
+document.getElementById('price-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // 显示确认对话框
+    Swal.fire({
+        title: '确认更新',
+        text: "您确定要更新此报价吗？此操作将保存所有更改。",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: '确认更新',
+        cancelButtonText: '取消'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            this.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

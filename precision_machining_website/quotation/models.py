@@ -118,9 +118,30 @@ class QuotationRequest(models.Model):
     
     # 报价信息
     status = models.CharField('报价状态', max_length=20, choices=QUOTATION_STATUS, default='pending')
+    # 总价相关字段
     estimated_price = models.DecimalField('预估价格', max_digits=10, decimal_places=2, null=True, blank=True)
     final_price = models.DecimalField('最终价格', max_digits=10, decimal_places=2, null=True, blank=True)
     price_explanation = models.TextField('价格说明', blank=True)
+    
+    # 细分报价字段
+    material_cost = models.DecimalField('材料费用', max_digits=10, decimal_places=2, null=True, blank=True)
+    processing_cost = models.DecimalField('加工费用', max_digits=10, decimal_places=2, null=True, blank=True)
+    programming_cost = models.DecimalField('编程费用', max_digits=10, decimal_places=2, null=True, blank=True)
+    surface_treatment_cost = models.DecimalField('表面处理费用', max_digits=10, decimal_places=2, null=True, blank=True)
+    packaging_shipping_cost = models.DecimalField('包装物流费用', max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    tax_cost = models.DecimalField('税费', max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    other_cost = models.DecimalField('其他费用', max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+
+    # 利润相关字段
+    profit_margin = models.DecimalField('利润率(%)', max_digits=5, decimal_places=2, null=True, blank=True, help_text='利润率百分比')
+    profit_amount = models.DecimalField('利润金额', max_digits=10, decimal_places=2, null=True, blank=True, help_text='利润金额')
+
+    # DMF相关字段（基于3D模型分析的复杂度评分）
+    dmf_volume_factor = models.FloatField('体积因子', null=True, blank=True)
+    dmf_surface_area_factor = models.FloatField('表面积因子', null=True, blank=True)
+    dmf_complexity_factor = models.FloatField('复杂度因子', null=True, blank=True)
+    dmf_precision_factor = models.FloatField('精度因子', null=True, blank=True)
+    dmf_feature_factor = models.FloatField('特征因子', null=True, blank=True)
     
     # 时间戳
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
@@ -149,6 +170,44 @@ class QuotationRequest(models.Model):
         }
         return difficulty_mapping.get(self.oc_machining_difficulty, '未评估')
 
+    def get_direct_cost(self):
+        """计算直接成本"""
+        direct_cost = 0
+        if self.material_cost:
+            direct_cost += float(self.material_cost)
+        if self.processing_cost:
+            direct_cost += float(self.processing_cost)
+        if self.programming_cost:
+            direct_cost += float(self.programming_cost)
+        if self.surface_treatment_cost:
+            direct_cost += float(self.surface_treatment_cost)
+        if self.packaging_shipping_cost:
+            direct_cost += float(self.packaging_shipping_cost)
+        if self.tax_cost:
+            direct_cost += float(self.tax_cost)
+        if self.other_cost:
+            direct_cost += float(self.other_cost)
+        return direct_cost
+
+    def get_default_profit(self):
+        """计算默认利润（20%）"""
+        direct_cost = self.get_direct_cost()
+        return direct_cost * 0.20
+
+    def calculate_final_price_with_profit(self):
+        """根据直接成本和利润率计算最终价格"""
+        direct_cost = self.get_direct_cost()
+        if self.profit_margin is not None:
+            # 如果设置了利润率，按此计算利润
+            profit_amount = direct_cost * (float(self.profit_margin) / 100.0)
+            self.profit_amount = profit_amount
+            return direct_cost + profit_amount
+        else:
+            # 默认20%利润率
+            profit_amount = direct_cost * 0.20
+            self.profit_amount = profit_amount
+            return direct_cost + profit_amount
+
     def save(self, *args, **kwargs):
         # 如果没有提供零件名称，则自动生成
         if not self.part_name:
@@ -168,7 +227,13 @@ class QuotationRequest(models.Model):
                 self.customer = User.objects.get(email=self.email)
             except User.DoesNotExist:
                 pass
-        
+
+        # 如果设置了利润率，自动计算利润金额和最终价格
+        if self.profit_margin is not None and self.material_cost is not None:
+            self.final_price = self.calculate_final_price_with_profit()
+            if self.profit_amount is None:
+                self.profit_amount = self.get_direct_cost() * (float(self.profit_margin) / 100.0)
+
         super().save(*args, **kwargs)
 
 
@@ -196,6 +261,7 @@ class DFMAnalysis(models.Model):
     name = models.CharField(max_length=100, verbose_name='分析名称')
     email = models.EmailField(verbose_name='邮箱')
     company = models.CharField(max_length=100, blank=True, verbose_name='公司')
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='用户', help_text='上传分析的用户')
     
     # 文件上传
     model_file = models.FileField(upload_to='dfm_models/', verbose_name='3D模型文件')

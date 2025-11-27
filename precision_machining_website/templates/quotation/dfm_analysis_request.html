@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}提交DFM分析 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="mb-0">DFM可制造性分析</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">姓名</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ initial_data.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ initial_data.email }}" required>
+                            <div class="form-text">我们将通过此邮箱发送分析结果</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="company" class="form-label">公司</label>
+                            <input type="text" class="form-control" id="company" name="company" value="">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="model_file" class="form-label">3D模型文件</label>
+                            <input type="file" class="form-control" id="model_file" name="model_file" accept=".step,.stp,.stl,.igs,.iges,.obj" required>
+                            <div class="form-text">支持格式: STEP(.step/.stp), STL(.stl), IGES(.igs/.iges), OBJ(.obj)</div>
+                        </div>
+                        
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle me-2"></i>上传3D模型后，系统将自动分析其可制造性，包括加工难度、潜在问题点及改进建议等。
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'quotation:dfm_analysis_home' %}" class="btn btn-outline-secondary">返回</a>
+                            <button type="submit" class="btn btn-primary">提交分析</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

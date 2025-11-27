@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}DFM分析结果 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">DFM分析结果</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>分析详情 #{{ analysis.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>客户信息</h6>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>姓名</strong></td>
+                                    <td>{{ analysis.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>邮箱</strong></td>
+                                    <td>{{ analysis.email }}</td>
+                                </tr>
+                                {% if analysis.company %}
+                                <tr>
+                                    <td><strong>公司</strong></td>
+                                    <td>{{ analysis.company }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>分析信息</h6>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>创建时间</strong></td>
+                                    <td>{{ analysis.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>模型文件</strong></td>
+                                    <td><a href="{{ analysis.model_file.url }}" target="_blank">{{ analysis.model_file.name|truncatechars:30 }}</a></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>可制造性评估</h5>
+                </div>
+                <div class="card-body">
+                    {% if analysis.machining_difficulty %}
+                    <div class="mb-3">
+                        <h6>加工难度评分</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="display-6 me-2">{{ analysis.machining_difficulty|floatformat:1 }}/5</div>
+                            <span class="badge bg-{% if analysis.machining_difficulty <= 2 %}success{% elif analysis.machining_difficulty <= 3 %}warning{% elif analysis.machining_difficulty <= 4 %}orange{% else %}danger{% endif %}">
+                                {% if analysis.machining_difficulty <= 2 %}容易{% elif analysis.machining_difficulty <= 3 %}中等{% elif analysis.machining_difficulty <= 4 %}困难{% else %}非常困难{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if analysis.processing_time_estimate %}
+                    <div class="mb-3">
+                        <h6>预估加工时间</h6>
+                        <p class="display-6 text-primary">{{ analysis.processing_time_estimate|floatformat:2 }} 小时</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'quotation:quotation_request' %}" class="btn btn-success">
+                            <i class="fas fa-calculator me-2"></i>基于此模型获取报价
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next={% url 'quotation:quotation_request' %}" class="btn btn-success">
+                            <i class="fas fa-sign-in-alt me-2"></i>登录并获取报价
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if analysis.volume or analysis.surface_area or analysis.complexity_score %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>几何特征分析</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            {% if analysis.volume %}
+                            <tr>
+                                <td><strong>体积</strong></td>
+                                <td>{{ analysis.volume|floatformat:2 }} cm³</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.surface_area %}
+                            <tr>
+                                <td><strong>表面积</strong></td>
+                                <td>{{ analysis.surface_area|floatformat:2 }} cm²</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.bounding_box_length %}
+                            <tr>
+                                <td><strong>尺寸</strong></td>
+                                <td>{{ analysis.bounding_box_length|floatformat:2 }} × {{ analysis.bounding_box_width|floatformat:2 }} × {{ analysis.bounding_box_height|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.complexity_score %}
+                            <tr>
+                                <td><strong>复杂度评分</strong></td>
+                                <td>{{ analysis.complexity_score|floatformat:1 }}/5</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.max_aspect_ratio %}
+                            <tr>
+                                <td><strong>最大径长比</strong></td>
+                                <td>{{ analysis.max_aspect_ratio|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.min_radius %}
+                            <tr>
+                                <td><strong>最小拐角半径</strong></td>
+                                <td>{{ analysis.min_radius|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.min_tool_diameter %}
+                            <tr>
+                                <td><strong>最小刀具直径</strong></td>
+                                <td>{{ analysis.min_tool_diameter|floatformat:2 }} mm</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if analysis.cq_cnc_difficulty_level or analysis.cq_cnc_difficulty_score %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>CNC加工分析</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            {% if analysis.cq_cnc_difficulty_level %}
+                            <tr>
+                                <td><strong>CNC难度等级</strong></td>
+                                <td>{{ analysis.get_cq_cnc_difficulty_level_display }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_cnc_difficulty_score %}
+                            <tr>
+                                <td><strong>CNC难度评分</strong></td>
+                                <td>{{ analysis.cq_cnc_difficulty_score }}/100</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_holes %}
+                            <tr>
+                                <td><strong>孔数量</strong></td>
+                                <td>{{ analysis.cq_holes }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_fillets %}
+                            <tr>
+                                <td><strong>圆角数量</strong></td>
+                                <td>{{ analysis.cq_fillets }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_thin_walls %}
+                            <tr>
+                                <td><strong>薄壁结构</strong></td>
+                                <td>{{ analysis.cq_thin_walls|yesno:"是,否" }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_recommended_process %}
+                            <tr>
+                                <td><strong>推荐工艺</strong></td>
+                                <td>{{ analysis.cq_recommended_process }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% if analysis.cq_estimated_cost %}
+                            <tr>
+                                <td><strong>估算成本</strong></td>
+                                <td>¥{{ analysis.cq_estimated_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if analysis.recommendations %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>设计优化建议</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for rec in analysis.recommendations %}
+                        <li class="list-group-item">{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="d-grid gap-2 d-md-inline-block">
+                <a href="{% url 'quotation:dfm_analysis_home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus-circle me-2"></i>新的DFM分析
+                </a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'quotation:user_dfm_analysis_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history me-2"></i>我的分析记录
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

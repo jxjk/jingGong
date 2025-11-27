@@ -54,6 +54,94 @@
                         <p><strong>3D模型文件:</strong> <a href="{{ quotation.model_file.url }}" target="_blank">{{ quotation.model_file.name }}</a></p>
                     </div>
                     {% endif %}
+                    
+                    <!-- 细分报价信息 -->
+                    {% if quotation.material_cost or quotation.processing_cost or quotation.programming_cost or quotation.surface_treatment_cost %}
+                    <div class="mt-4">
+                        <h6>成本细分</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <td><strong>材料费用:</strong></td>
+                                    <td>¥{{ quotation.material_cost|floatformat:2|default:"0.00" }}</td>
+                                    <td><strong>加工费用:</strong></td>
+                                    <td>¥{{ quotation.processing_cost|floatformat:2|default:"0.00" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>编程费用:</strong></td>
+                                    <td>¥{{ quotation.programming_cost|floatformat:2|default:"0.00" }}</td>
+                                    <td><strong>表面处理费用:</strong></td>
+                                    <td>¥{{ quotation.surface_treatment_cost|floatformat:2|default:"0.00" }}</td>
+                                </tr>
+                                <tr>
+                                    {% if quotation.packaging_shipping_cost %}
+                                    <td><strong>包装物流费用:</strong></td>
+                                    <td>¥{{ quotation.packaging_shipping_cost|floatformat:2 }}</td>
+                                    {% else %}
+                                    <td><strong>包装物流费用:</strong></td>
+                                    <td>¥0.00</td>
+                                    {% endif %}
+                                    {% if quotation.tax_cost %}
+                                    <td><strong>税费:</strong></td>
+                                    <td>¥{{ quotation.tax_cost|floatformat:2 }}</td>
+                                    {% else %}
+                                    <td><strong>税费:</strong></td>
+                                    <td>¥0.00</td>
+                                    {% endif %}
+                                </tr>
+                                <tr>
+                                    {% if quotation.other_cost %}
+                                    <td><strong>其他费用:</strong></td>
+                                    <td>¥{{ quotation.other_cost|floatformat:2 }}</td>
+                                    {% else %}
+                                    <td><strong>其他费用:</strong></td>
+                                    <td>¥0.00</td>
+                                    {% endif %}
+                                    <td><strong>总计:</strong></td>
+                                    <td><strong>¥{{ quotation.final_price|floatformat:2|default:"0.00" }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- DMF设计因子 -->
+                    {% if quotation.dmf_volume_factor or quotation.dmf_surface_area_factor or quotation.dmf_complexity_factor or quotation.dmf_precision_factor or quotation.dmf_feature_factor %}
+                    <div class="mt-4">
+                        <h6>DMF设计因子</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    {% if quotation.dmf_volume_factor %}
+                                    <td><strong>体积因子:</strong></td>
+                                    <td>{{ quotation.dmf_volume_factor|floatformat:2 }}</td>
+                                    {% endif %}
+                                    {% if quotation.dmf_surface_area_factor %}
+                                    <td><strong>表面积因子:</strong></td>
+                                    <td>{{ quotation.dmf_surface_area_factor|floatformat:2 }}</td>
+                                    {% endif %}
+                                    {% if quotation.dmf_complexity_factor %}
+                                    <td><strong>复杂度因子:</strong></td>
+                                    <td>{{ quotation.dmf_complexity_factor|floatformat:2 }}</td>
+                                    {% endif %}
+                                    {% if quotation.dmf_precision_factor %}
+                                    <td><strong>精度因子:</strong></td>
+                                    <td>{{ quotation.dmf_precision_factor|floatformat:2 }}</td>
+                                    {% endif %}
+                                </tr>
+                                <tr>
+                                    {% if quotation.dmf_feature_factor %}
+                                    <td><strong>特征因子:</strong></td>
+                                    <td>{{ quotation.dmf_feature_factor|floatformat:2 }}</td>
+                                    <td></td>
+                                    <td></td>
+                                    {% endif %}
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                 </div>
             </div>
             
@@ -147,6 +235,35 @@
                     {% if quotation.status != 'quoted' %}
                     <form method="post">
                         {% csrf_token %}
+                        <!-- 细分报价表单 -->
+                        <div class="mb-3">
+                            <label for="material_cost" class="form-label">材料费用 (¥)</label>
+                            <input type="number" class="form-control" id="material_cost" name="material_cost" step="0.01" value="{{ quotation.material_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="processing_cost" class="form-label">加工费用 (¥)</label>
+                            <input type="number" class="form-control" id="processing_cost" name="processing_cost" step="0.01" value="{{ quotation.processing_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="programming_cost" class="form-label">编程费用 (¥)</label>
+                            <input type="number" class="form-control" id="programming_cost" name="programming_cost" step="0.01" value="{{ quotation.programming_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="surface_treatment_cost" class="form-label">表面处理费用 (¥)</label>
+                            <input type="number" class="form-control" id="surface_treatment_cost" name="surface_treatment_cost" step="0.01" value="{{ quotation.surface_treatment_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="packaging_shipping_cost" class="form-label">包装物流费用 (¥)</label>
+                            <input type="number" class="form-control" id="packaging_shipping_cost" name="packaging_shipping_cost" step="0.01" value="{{ quotation.packaging_shipping_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="tax_cost" class="form-label">税费 (¥)</label>
+                            <input type="number" class="form-control" id="tax_cost" name="tax_cost" step="0.01" value="{{ quotation.tax_cost|default:'0.00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="other_cost" class="form-label">其他费用 (¥)</label>
+                            <input type="number" class="form-control" id="other_cost" name="other_cost" step="0.01" value="{{ quotation.other_cost|default:'0.00' }}">
+                        </div>
                         <div class="mb-3">
                             <label for="final_price" class="form-label">最终价格 (¥)</label>
                             <input type="number" class="form-control" id="final_price" name="final_price" step="0.01" value="{{ quotation.estimated_price|default:'' }}" required>

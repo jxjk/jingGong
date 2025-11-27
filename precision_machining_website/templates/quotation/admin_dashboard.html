@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}报价管理 - 管理员 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">报价管理仪表板</h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_quotations }}</h3>
+                    <p class="card-text">总报价数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <h3 class="card-title">{{ pending_quotations }}</h3>
+                    <p class="card-text">待处理</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ processing_quotations }}</h3>
+                    <p class="card-text">处理中</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3 class="card-title">{{ quoted_quotations }}</h3>
+                    <p class="card-text">已报价</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">最近报价</h5>
+                    <a href="{% url 'quotation:admin_quotation_list' %}" class="btn btn-primary">查看全部</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>客户姓名</th>
+                                    <th>零件名称</th>
+                                    <th>加工类型</th>
+                                    <th>材料</th>
+                                    <th>数量</th>
+                                    <th>状态</th>
+                                    <th>最终价格</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quotation in quotations|slice:":10" %}
+                                <tr>
+                                    <td>{{ quotation.id }}</td>
+                                    <td>{{ quotation.name }}</td>
+                                    <td>{{ quotation.part_name|truncatechars:20 }}</td>
+                                    <td>{{ quotation.get_processing_type_display }}</td>
+                                    <td>{{ quotation.get_material_display }}</td>
+                                    <td>{{ quotation.quantity }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if quotation.status == 'quoted' %}success{% elif quotation.status == 'pending' %}warning{% elif quotation.status == 'processing' %}primary{% elif quotation.status == 'confirmed' %}info{% else %}secondary{% endif %}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>¥{{ quotation.final_price|floatformat:2|default:"待定" }}</td>
+                                    <td>{{ quotation.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'quotation:admin_quotation_detail' quotation.id %}" class="btn btn-sm btn-outline-primary">查看</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center">暂无报价</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

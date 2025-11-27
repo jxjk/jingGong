@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}DFM分析 - 精工智造{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">DFM可制造性分析</h1>
+            <p class="lead">上传您的3D模型文件，获取专业的可制造性分析报告</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">DFM分析功能</h5>
+                    <p class="card-text">我们的DFM（Design for Manufacturing，面向制造的设计）分析工具可以帮助您：</p>
+                    <ul class="mb-4">
+                        <li>评估3D模型的可制造性</li>
+                        <li>识别设计中的制造难点</li>
+                        <li>优化设计以降低制造成本</li>
+                        <li>获得加工建议和改进方案</li>
+                        <li>预估加工难度和时间</li>
+                    </ul>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quotation:dfm_analysis_request' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-file-upload me-2"></i>开始DFM分析
+                        </a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'quotation:user_dfm_analysis_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-history me-2"></i>我的DFM分析记录
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5>分析报告示例</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="border rounded p-3 h-100">
+                                <i class="fas fa-ruler-combined fa-2x text-primary mb-2"></i>
+                                <h6>几何分析</h6>
+                                <p class="mb-0">体积、表面积、尺寸分析</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="border rounded p-3 h-100">
+                                <i class="fas fa-hard-hat fa-2x text-success mb-2"></i>
+                                <h6>制造难度</h6>
+                                <p class="mb-0">加工难度评估和评分</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="border rounded p-3 h-100">
+                                <i class="fas fa-lightbulb fa-2x text-warning mb-2"></i>
+                                <h6>优化建议</h6>
+                                <p class="mb-0">设计改进建议</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

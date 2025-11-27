@@ -87,14 +87,18 @@
         </div>
         {% endif %}
         
-        <div class="card mt-4">
+                <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">DFM设计优化工具</h5>
                 <p class="card-text">
                     使用我们的DFM(Design for Manufacturing)分析工具，可以评估您的设计是否易于制造，
                     识别潜在的制造问题，并获得优化建议。
                 </p>
-                <p class="text-muted">该功能正在开发中，敬请期待。</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'quotation:dfm_analysis_home' %}" class="btn btn-primary">
+                        <i class="fas fa-file-upload me-2"></i>开始DFM分析
+                    </a>
+                </div>
             </div>
         </div>
     </div>

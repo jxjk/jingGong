@@ -26,22 +26,60 @@ class QuotationRequestForm(forms.ModelForm):
 
 
 class QuotationUpdateForm(forms.ModelForm):
-    """报价更新表单，用于管理员更新最终价格和说明"""
     class Meta:
         model = QuotationRequest
-        fields = ['final_price', 'price_explanation', 'status']
+        fields = ['final_price', 'material_cost', 'processing_cost', 'programming_cost', 
+                  'surface_treatment_cost', 'packaging_shipping_cost', 'tax_cost', 'other_cost',
+                  'profit_margin', 'profit_amount', 'price_explanation', 'status']
         widgets = {
             'final_price': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'step': '0.01',
-                'placeholder': '请输入最终价格'
+            }),
+            'material_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'processing_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'programming_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'surface_treatment_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'packaging_shipping_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'tax_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'other_cost': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'profit_margin': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'placeholder': '例如: 20.00 表示20%利润率'
+            }),
+            'profit_amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
             }),
             'price_explanation': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': '请输入价格说明'
             }),
-            'status': forms.Select(attrs={'class': 'form-control'})
+            'status': forms.Select(attrs={
+                'class': 'form-select',
+            }),
         }
 
 
